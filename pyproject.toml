@@ -15,35 +15,35 @@ dev = [
 ENV = "development"
 
 [tool.poe.tasks.backend-dev]
-help = ""
 cwd = "backend"
-cmd = "uv run fastapi dev src/api/main.py"
+cmd = "fastapi dev src/api/main.py"
+help = ""
 
 [tool.poe.tasks.frontend-dev]
-help = ""
 cwd = "frontend"
 shell = "pnpm run dev"
+help = ""
 
 # --- Schema ---
 
 [tool.poe.tasks.backend-schema]
-help = ""
 cwd = "backend"
-cmd = "uv run python -m scripts.dump_openapi_schema"
+cmd = "python -m scripts.dump_openapi_schema"
+help = ""
 
 [tool.poe.tasks.frontend-schema]
-help = ""
 cwd = "frontend"
 shell = "pnpm openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts"
+help = ""
 
 [tool.poe.tasks.schema]
-help = ""
 sequence = ["backend-schema", "frontend-schema"]
 ignore_fail = false
+help = ""
 
 # --- Migrations ---
 
 [tool.poe.tasks.migrate]
-help = ""
 cwd = "backend"
-cmd = "uv run alembic upgrade head"
+cmd = "alembic upgrade head"
+help = ""

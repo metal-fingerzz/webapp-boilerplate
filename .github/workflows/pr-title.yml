@@ -1,0 +1,48 @@
+name: Pull request title
+
+# Le squash merge fait du titre de la PR le message de commit sur `main`.
+# C'est donc le seul point où la convention doit être appliquée.
+# Voir docs/git-workflow.md, §3 et §4.
+
+on:
+  pull_request_target:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Valider le titre
+    runs-on: ubuntu-latest
+    steps:
+      - uses: amannn/action-semantic-pull-request@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          # docs/git-workflow.md §3 — types
+          types: |
+            feat
+            fix
+            chore
+            docs
+            refactor
+            test
+          # docs/git-workflow.md §3 — scopes (liste fermée)
+          scopes: |
+            api
+            web
+            db
+            ci
+            deps
+            repo
+          requireScope: true
+          # Description en minuscule, sans point final.
+          subjectPattern: ^(?![A-Z])(?!.*\.$).+$
+          subjectPatternError: >-
+            La description « {subject} » est invalide : elle doit commencer par
+            une minuscule et ne pas se terminer par un point.

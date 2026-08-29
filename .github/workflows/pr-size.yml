@@ -1,0 +1,42 @@
+name: Pull request size
+
+# docs/git-workflow.md §5 — pas de blocage sur la taille, seulement un étiquetage
+# indicatif. Une grosse PR peut être légitime (migration, refactor) ; l'auteur
+# justifie alors dans la description.
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: pr-size-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  label:
+    name: Étiqueter par taille
+    runs-on: ubuntu-latest
+    steps:
+      - uses: pascalgn/size-label-action@v0.5.7
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Repère indicatif du §5 : ~400 lignes de diff net.
+          IGNORED: |
+            /uv.lock
+            /**/pnpm-lock.yaml
+            /**/package-lock.json
+            /frontend/src/api/schema.d.ts
+        with:
+          sizes: >-
+            {
+              "0":   "XS",
+              "20":  "S",
+              "100": "M",
+              "400": "L",
+              "800": "XL"
+            }

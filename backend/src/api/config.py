@@ -21,6 +21,7 @@ class Settings(BaseSettings):
         "debug", "info", "warn", "warning", "errors", "critical", "fatal"
     ]
 
+    @property
     def logging_level(self) -> int:
         match self.LOG_LEVEL:
             case "debug":

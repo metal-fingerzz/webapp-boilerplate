@@ -8,7 +8,7 @@ from api.routes import main_router
 IS_DEV_ENV: bool = ENV == "development"
 
 logging.basicConfig(
-    level=settings.logging_level(),
+    level=settings.logging_level,
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
 )
 

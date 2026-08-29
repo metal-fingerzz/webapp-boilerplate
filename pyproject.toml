@@ -43,6 +43,17 @@ help = ""
 
 # --- Migrations ---
 
+[tool.poe.tasks.revision]
+cwd = "backend"
+cmd = "alembic revision --autogenerate -m ${message}"
+help = ""
+
+  [[tool.poe.tasks.revision.args]]
+  name = "message"
+  options = ["-m", "--message"]
+  required = true
+  help = ""
+
 [tool.poe.tasks.migrate]
 cwd = "backend"
 cmd = "alembic upgrade head"

@@ -31,8 +31,13 @@ Modèle **trunk-based simplifié** (inspiré de GitHub Flow). Choisi plutôt que
 | `feature/` | nouvelle fonctionnalité |
 | `fix/` | correction de bug |
 | `chore/` | tâche technique sans impact fonctionnel |
+| `docs/` | documentation uniquement |
+| `refactor/` | changement de code sans changement de comportement |
+| `test/` | ajout ou modification de tests |
 
 Exemple : `feature/api-user-preferences`, `fix/web-cart-total`.
+
+Chaque préfixe correspond au type de commit attendu (voir [§3](#3-convention-de-commits)), à la seule exception de `feature/`, qui répond au type `feat`.
 
 ## 2. Protection de la branche `main`
 

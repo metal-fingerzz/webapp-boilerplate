@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Generated OpenAPI schema (see poe frontend-schema)
+src/api/schema.d.ts

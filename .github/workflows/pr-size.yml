@@ -1,8 +1,8 @@
 name: Pull request size
 
-# docs/git-workflow.md §5 — pas de blocage sur la taille, seulement un étiquetage
-# indicatif. Une grosse PR peut être légitime (migration, refactor) ; l'auteur
-# justifie alors dans la description.
+# docs/git-workflow.md §5 — size is never blocking, only an indicative label.
+# A large pull request can be legitimate (migration, refactor); the author
+# justifies it in the description.
 
 on:
   pull_request_target:
@@ -19,13 +19,13 @@ concurrency:
 
 jobs:
   label:
-    name: Étiqueter par taille
+    name: Label by size
     runs-on: ubuntu-latest
     steps:
       - uses: pascalgn/size-label-action@v0.5.7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Repère indicatif du §5 : ~400 lignes de diff net.
+          # Indicative threshold from §5: ~400 lines of net diff.
           IGNORED: |
             /uv.lock
             /**/pnpm-lock.yaml

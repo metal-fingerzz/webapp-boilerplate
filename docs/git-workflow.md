@@ -77,6 +77,8 @@ Comme la fusion se fait en squash (voir [§4](#4-fusion-des-pull-requests)), **c
 
 Cette liste peut être étendue si de nouveaux modules apparaissent dans le monorepo.
 
+Le titre est rédigé en anglais, comme tout artefact versionné ; le corps de la pull request reste en français. Voir [language.md](language.md).
+
 ## 4. Fusion des pull requests
 
 **Squash merge systématique.** Tous les commits de la branche sont compressés en un seul commit sur `main`, dont le message est le titre de la PR. Le numéro de PR est ajouté automatiquement par GitHub (`(#47)`), ce qui permet de retrouver l'historique détaillé et la discussion associée.

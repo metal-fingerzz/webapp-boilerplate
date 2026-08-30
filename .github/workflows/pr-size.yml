@@ -30,7 +30,6 @@ jobs:
             /uv.lock
             /**/pnpm-lock.yaml
             /**/package-lock.json
-            /frontend/src/api/schema.d.ts
         with:
           sizes: >-
             {

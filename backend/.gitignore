@@ -5,4 +5,4 @@ __pycache__/
 *.py[cod]
 
 # Generated OpenAPI schema (see poe backend-schema)
-openapi.json
+openapi-schema.json

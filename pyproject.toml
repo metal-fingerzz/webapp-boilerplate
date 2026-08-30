@@ -33,7 +33,7 @@ help = ""
 
 [tool.poe.tasks.frontend-schema]
 cwd = "frontend"
-shell = "pnpm openapi-typescript ../backend/openapi.json -o src/api/schema.d.ts"
+shell = "pnpm run generate:schema"
 help = ""
 
 [tool.poe.tasks.schema]

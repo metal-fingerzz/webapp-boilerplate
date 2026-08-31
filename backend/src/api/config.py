@@ -18,7 +18,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: PostgresDsn
     LOG_LEVEL: Literal[
-        "debug", "info", "warn", "warning", "errors", "critical", "fatal"
+        "debug", "info", "warn", "warning", "error", "critical", "fatal"
     ]
 
     @property
@@ -30,7 +30,7 @@ class Settings(BaseSettings):
                 return logging.INFO
             case "warn" | "warning":
                 return logging.WARNING
-            case "errors":
+            case "error":
                 return logging.ERROR
             case "critical" | "fatal":
                 return logging.CRITICAL

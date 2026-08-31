@@ -11,7 +11,7 @@ from api.config import Settings
         ("info", logging.INFO),
         ("warn", logging.WARNING),
         ("warning", logging.WARNING),
-        ("errors", logging.ERROR),
+        ("error", logging.ERROR),
         ("critical", logging.CRITICAL),
         ("fatal", logging.CRITICAL),
     ],

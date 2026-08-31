@@ -6,3 +6,7 @@ __pycache__/
 
 # Generated OpenAPI schema (see poe backend-schema)
 openapi-schema.json
+
+# Test artefacts (see poe backend-test)
+.coverage
+.pytest_cache/

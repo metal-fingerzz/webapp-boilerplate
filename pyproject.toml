@@ -24,6 +24,13 @@ cwd = "frontend"
 shell = "pnpm run dev"
 help = ""
 
+# --- Tests ---
+
+[tool.poe.tasks.backend-test]
+cwd = "backend"
+cmd = "pytest --cov=api --cov-report=term-missing"
+help = ""
+
 # --- Schema ---
 
 [tool.poe.tasks.backend-schema]

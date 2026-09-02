@@ -4,10 +4,23 @@
   "python.testing.pytestEnabled": true,
   "python.testing.cwd": "${workspaceFolder}/backend",
   "python.testing.pytestArgs": ["tests"],
+
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff",
-    "editor.formatOnSave": true
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-  "eslint.workingDirectories": [{ "directory": "frontend", "changeProcessCwd": true }],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "files.associations": {
+    "**/frontend/**/*.css": "tailwindcss"
+  },
+  "[tailwindcss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "eslint.workingDirectories": [
+    { "directory": "frontend", "changeProcessCwd": true }
+  ],
   "files.exclude": { "**/__pycache__": true, "**/.ruff_cache": true }
 }

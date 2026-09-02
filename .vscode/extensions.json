@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    // Frontend
+    "dbaeumer.vscode-eslint",
+    "esbenp.prettier-vscode",
+    "bradlc.vscode-tailwindcss",
+    // Backend
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "charliermarsh.ruff",
+    "tamasfe.even-better-toml"
+  ]
+}

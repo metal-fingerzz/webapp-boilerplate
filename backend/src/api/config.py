@@ -17,9 +17,8 @@ class Settings(BaseSettings):
     )
 
     DATABASE_URL: PostgresDsn
-    LOG_LEVEL: Literal[
-        "debug", "info", "warn", "warning", "error", "critical", "fatal"
-    ]
+    FRONTEND_URL: str
+    LOG_LEVEL: Literal["debug", "info", "warn", "warning", "error", "critical", "fatal"]
 
     @property
     def logging_level(self) -> int:

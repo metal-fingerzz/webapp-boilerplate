@@ -2,6 +2,7 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException, RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
 
 from api.config import ENV, settings
@@ -43,5 +44,13 @@ async def on_unhandled_exception(request: Request, exception: Exception):
     logging.getLogger().exception(msg="Unhandled exception", exc_info=exception)
     return unhandled_exception_json()
 
+
+api.add_middleware(
+    CORSMiddleware,
+    allow_origins=[settings.FRONTEND_URL],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 api.include_router(router=main_router)

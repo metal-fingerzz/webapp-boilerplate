@@ -3,6 +3,7 @@
     // Frontend
     "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
+    "vitest.explorer",
     "bradlc.vscode-tailwindcss",
     // Backend
     "ms-python.python",

@@ -31,6 +31,16 @@ cwd = "backend"
 cmd = "pytest --cov=api --cov-report=term-missing"
 help = ""
 
+[tool.poe.tasks.frontend-test]
+cwd = "frontend"
+shell = "pnpm run test --coverage"
+help = ""
+
+[tool.poe.tasks.test]
+sequence = ["backend-test", "frontend-test"]
+ignore_fail = false
+help = ""
+
 # --- Schema ---
 
 [tool.poe.tasks.backend-schema]

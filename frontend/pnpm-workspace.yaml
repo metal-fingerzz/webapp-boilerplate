@@ -1,0 +1,5 @@
+# msw's install script only copies the browser service worker, which the
+# Node-based test suite never loads. Denied explicitly so `pnpm install` stops
+# failing on an unreviewed build script.
+allowBuilds:
+  msw: false

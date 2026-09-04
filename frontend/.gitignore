@@ -25,3 +25,6 @@ dist-ssr
 
 # Generated OpenAPI schema (see poe frontend-schema)
 src/api/schema.d.ts
+
+# Coverage reports, written only when a file reporter is asked for
+coverage

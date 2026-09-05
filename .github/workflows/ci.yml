@@ -27,7 +27,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: astral-sh/setup-uv@v10
+      # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 
@@ -60,7 +61,8 @@ jobs:
       # this job needs the Python toolchain too — a few seconds against a
       # dependency on the backend job, which would hide the frontend verdict
       # every time the backend is red.
-      - uses: astral-sh/setup-uv@v10
+      # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
+      - uses: astral-sh/setup-uv@v10.0.1
         with:
           enable-cache: true
 

@@ -20,6 +20,7 @@ dev = [
     "pytest>=9.1.1,<10.0.0",
     "pytest-asyncio>=1.4.0,<2.0.0",
     "pytest-cov>=7.1.0,<8.0.0",
+    "ruff>=0.16.6,<0.17.0",
 ]
 
 [project.scripts]
@@ -37,3 +38,9 @@ testpaths = ["tests"]
 addopts = "--import-mode=importlib"
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
+
+[tool.ruff.lint]
+# Beyond the default rules (pycodestyle errors, Pyflakes): import sorting,
+# outdated syntax and the bugbear set. Formatting is left entirely to
+# `ruff format`, whose defaults already match the code in place.
+select = ["E", "F", "I", "UP", "B"]

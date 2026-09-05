@@ -5,10 +5,21 @@
   "python.testing.cwd": "${workspaceFolder}/backend",
   "python.testing.pytestArgs": ["tests"],
 
+  // Use the ruff pinned in uv.lock rather than the one bundled with the
+  // extension, so the editor and the CI check never disagree on formatting.
+  "ruff.importStrategy": "fromEnvironment",
+
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    // `ruff format` does not sort imports; the I rules enabled in
+    // backend/pyproject.toml are applied by these code actions instead.
+    // Without them, saving would leave violations the CI reports.
+    "editor.codeActionsOnSave": {
+      "source.fixAll.ruff": "explicit",
+      "source.organizeImports.ruff": "explicit"
+    }
   },
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"

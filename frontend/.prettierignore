@@ -1,0 +1,4 @@
+# Written by pnpm, never by hand: reformatting it would only add noise to every
+# dependency update. Files ignored by Git — build output, coverage reports, the
+# generated OpenAPI types — are already skipped: Prettier reads .gitignore too.
+pnpm-lock.yaml

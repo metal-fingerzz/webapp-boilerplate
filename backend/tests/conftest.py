@@ -8,8 +8,9 @@ os.environ["ENV"] = "test"
 from collections.abc import AsyncIterator
 
 import pytest
-from api.main import api
 from httpx import ASGITransport, AsyncClient
+
+from api.main import api
 
 
 @pytest.fixture

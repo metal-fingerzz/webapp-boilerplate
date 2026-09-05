@@ -1,0 +1,92 @@
+name: CI
+
+# docs/git-workflow.md §2 — lint, tests and build block the merge, with no
+# exception, not even for an urgent fix (§7).
+#
+# The two stacks run as two independent jobs: they share nothing, they start at
+# the same time, and a failure on one side still leaves the verdict of the other
+# visible on the pull request.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      # --locked fails if uv.lock no longer matches the pyproject files, so a
+      # dependency change that skipped the lock never reaches main.
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Lint
+        run: uv run poe backend-lint
+
+      - name: Test
+        run: uv run poe backend-test
+
+      # The backend produces no bundle; dumping the OpenAPI schema is the
+      # closest thing to a build. It imports the whole application, so it fails
+      # on anything the test suite does not reach, and it produces the artefact
+      # the frontend types are generated from.
+      - name: Build
+        run: uv run poe backend-schema
+
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # frontend/src/api/schema.d.ts is generated, therefore not versioned, and
+      # `tsc -b` fails without it. Generating it means running the backend, so
+      # this job needs the Python toolchain too — a few seconds against a
+      # dependency on the backend job, which would hide the frontend verdict
+      # every time the backend is red.
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: true
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: frontend/package.json
+          cache: true
+          cache_dependency_path: frontend/pnpm-lock.yaml
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: Install dependencies
+        run: |
+          uv sync --locked
+          pnpm --dir frontend install --frozen-lockfile
+
+      - name: Lint
+        run: uv run poe frontend-lint
+
+      - name: Test
+        run: uv run poe frontend-test
+
+      - name: Generate the API types
+        run: uv run poe schema
+
+      - name: Build
+        run: uv run poe frontend-build

@@ -170,7 +170,7 @@ Ainsi un `pytest -k <motif>` ou un `vitest <fichier>` lancé à la main pendant 
 
 Côté frontend, `src/main.tsx` est exclu du rapport : ce point d'entrée ne fait que monter `<App />` dans un document réel, il n'a aucune branche qu'un test pourrait exercer, et l'y laisser afficherait une ligne rouge que personne ne peut corriger — le meilleur moyen d'apprendre à l'équipe à ignorer le rapport.
 
-**Aucun seuil bloquant pour l'instant.** Un plancher de couverture sur une poignée de tests ne mesure rien, et l'expérience veut qu'il finisse abaissé au premier échec gênant plutôt que corrigé. Le verrou se posera avec les checks CI bloquants, sur une base de tests réelle.
+**Aucun seuil bloquant pour l'instant.** Un plancher de couverture sur une poignée de tests ne mesure rien, et l'expérience veut qu'il finisse abaissé au premier échec gênant plutôt que corrigé. La CI exécute bien les deux suites de façon bloquante (voir [git-workflow.md §2](git-workflow.md#2-protection-de-la-branche-main)), mais elle ne regarde que leur verdict : le rapport de couverture s'affiche dans ses logs sans jamais faire échouer un job. Le plancher viendra sur une base de tests réelle.
 
 > **Limite connue (frontend).** Un test qui provoque volontairement l'échec de l'évaluation d'un module — typiquement `await expect(import("@/api")).rejects.toThrow()` pour vérifier une garde de configuration — fait **disparaître le fichier concerné du rapport de couverture** au lieu de l'y faire figurer partiellement. Le comportement est identique avec les providers `v8` et `istanbul`. C'est pourquoi la garde sur `VITE_API_URL` n'est pas testée : un fichier source escamoté sans bruit du rapport induit plus en erreur que la ligne non couverte qu'on gagnerait.
 

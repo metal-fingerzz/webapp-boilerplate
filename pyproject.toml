@@ -24,6 +24,29 @@ cwd = "frontend"
 shell = "pnpm run dev"
 help = ""
 
+# --- Lint ---
+
+[tool.poe.tasks.backend-lint]
+sequence = [
+  { cmd = "ruff check .", cwd = "backend" },
+  { cmd = "ruff format --check .", cwd = "backend" },
+]
+ignore_fail = false
+help = ""
+
+[tool.poe.tasks.frontend-lint]
+sequence = [
+  { shell = "pnpm run lint", cwd = "frontend" },
+  { shell = "pnpm run format:check", cwd = "frontend" },
+]
+ignore_fail = false
+help = ""
+
+[tool.poe.tasks.lint]
+sequence = ["backend-lint", "frontend-lint"]
+ignore_fail = false
+help = ""
+
 # --- Tests ---
 
 [tool.poe.tasks.backend-test]
@@ -55,6 +78,18 @@ help = ""
 
 [tool.poe.tasks.schema]
 sequence = ["backend-schema", "frontend-schema"]
+ignore_fail = false
+help = ""
+
+# --- Build ---
+
+[tool.poe.tasks.frontend-build]
+cwd = "frontend"
+shell = "pnpm run build"
+help = ""
+
+[tool.poe.tasks.build]
+sequence = ["schema", "frontend-build"]
 ignore_fail = false
 help = ""
 

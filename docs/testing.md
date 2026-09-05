@@ -30,6 +30,8 @@ poe frontend-test    # vitest
 poe test             # les deux, dans cet ordre
 ```
 
+Les deux autres checks bloquants ont les leurs : `poe lint`, décliné en `backend-lint` (`ruff check` puis `ruff format --check`) et `frontend-lint` (ESLint puis Prettier), et `poe build`, qui régénère le schéma avant de construire le bundle — le backend n'ayant pas de build propre, `poe backend-schema` en tient lieu. La CI n'appelle rien d'autre que ces tâches, voir [git-workflow.md §2](git-workflow.md#2-protection-de-la-branche-main).
+
 **Pourquoi Vitest plutôt que Jest** — il réutilise la configuration et le pipeline de transformation de Vite. Jest demanderait de redéclarer l'alias `@/`, d'installer une chaîne de transformation pour le TSX et de reproduire la substitution d'`import.meta.env` : trois occasions de diverger de ce que le bundler fait réellement.
 
 **Pourquoi `jsdom` plutôt que `happy-dom`** — `happy-dom` est plus rapide, mais son implémentation du DOM est partielle et les écarts se découvrent en plein débogage, sur un test qui échoue pour une raison sans rapport avec le code testé. Sur une suite de cette taille, les quelques centaines de millisecondes gagnées ne valent pas ce risque.

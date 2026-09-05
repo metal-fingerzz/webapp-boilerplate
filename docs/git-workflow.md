@@ -47,6 +47,17 @@ Règles activées sur `main` :
 - Merge bloqué si un **check CI échoue** (tests, lint, build) — aucune exception, y compris en urgence.
 - **Branche à jour avant fusion** (rebase requis sur `main`) : évite les régressions silencieuses entre deux PR fusionnées en parallèle.
 
+Les checks bloquants tiennent dans un seul workflow, `.github/workflows/ci.yml`, en deux jobs indépendants qui démarrent en même temps — un backend rouge laisse quand même voir le verdict du frontend :
+
+| Job | Étapes |
+|---|---|
+| `Backend` | `poe backend-lint` → `poe backend-test` → `poe backend-schema` |
+| `Frontend` | `poe frontend-lint` → `poe frontend-test` → `poe schema` → `poe frontend-build` |
+
+Chaque étape appelle une tâche `poe`, jamais l'outil directement : ce qui échoue sur une pull request se rejoue à l'identique en local, où `poe lint`, `poe test` et `poe build` lancent les deux piles d'un coup.
+
+Deux choix méritent une justification. Le backend ne produit aucun bundle, c'est donc **le dump du schéma OpenAPI qui tient lieu de build** : il importe l'application entière — il échoue sur ce que la suite de tests ne traverse pas — et produit l'artefact dont le frontend tire ses types. Et le job `Frontend` régénère ce schéma pour son propre compte, car `frontend/src/api/schema.d.ts` est généré, donc non versionné, et `tsc -b` échoue sans lui ; le faire passer par un artefact aurait rendu le frontend dépendant du backend, et donc invisible chaque fois que celui-ci est rouge.
+
 ## 3. Convention de commits
 
 Basée sur [Conventional Commits](https://www.conventionalcommits.org/) : `type(scope): description`.

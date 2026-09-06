@@ -100,7 +100,7 @@ Le titre est rédigé en anglais, comme tout artefact versionné ; le corps de l
 
 **Une correction hors du scope annoncé n'entre pas dans la pull request**, quelle que soit sa taille — une ligne comprise. Le titre devient le message de commit sur `main` (voir [§4](#4-fusion-des-pull-requests)) : glisser un changement `api` sous un titre `chore(ci)` rend l'historique menteur, et l'automatisation du changelog visée au [§8](#8-versioning-sémantique) ne verra jamais passer ce changement. La proximité dans le diff — « le fichier est déjà ouvert » — n'est pas un argument, c'est le mécanisme même de la dérive de périmètre.
 
-Ces corrections deviennent des issues, puis se regroupent par scope dans une pull request de nettoyage (`chore(api): remove leftovers from the uv init skeleton`), plutôt qu'une branche par ligne.
+Ces corrections deviennent des issues, puis se regroupent par scope dans une pull request de nettoyage (`chore(api): remove leftovers from the uv init skeleton`), plutôt qu'une branche par ligne. C'est une commodité contre la cérémonie, pas une condition : une correction prête n'attend jamais qu'une seconde apparaisse.
 
 Une trouvaille qui **empêche la tâche d'aboutir** n'est en revanche pas hors scope : c'est une dépendance, elle entre dans la pull request et le corps l'explique.
 

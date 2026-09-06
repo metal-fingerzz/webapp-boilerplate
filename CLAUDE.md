@@ -1,6 +1,6 @@
 # Conventions de travail
 
-Ce document s'adresse à un agent travaillant sur ce dépôt. Les conventions destinées aux humains vivent dans [docs/](docs/) — [workflow Git](docs/git-workflow.md), [tests](docs/testing.md), [langue](docs/language.md) — et doivent être lues avant toute contribution ; ce qui suit ne les remplace pas.
+Ce document porte les conventions propres au travail avec un agent sur ce dépôt. Il ne remplace ni n'assouplit celles de [docs/](docs/) — [workflow Git](docs/git-workflow.md), [tests](docs/testing.md), [langue](docs/language.md) — qui s'imposent à tout contributeur, humain ou agent, et sont à lire avant toute contribution.
 
 ## Sommaire
 

@@ -39,6 +39,14 @@ Exemple : `feature/api-user-preferences`, `fix/web-cart-total`.
 
 Chaque préfixe correspond au type de commit attendu (voir [§3](#3-convention-de-commits)), à la seule exception de `feature/`, qui répond au type `feat`.
 
+**Après la fusion, la branche est supprimée**, en local comme sur le remote. Une branche fusionnée qui subsiste n'est plus qu'un doublon figé de `main`, dont personne ne sait dire s'il reste utile.
+
+Attention au piège : `git branch --merged` n'en détecte aucune. La fusion se faisant en squash (voir [§4](#4-fusion-des-pull-requests)), le tip d'une branche fusionnée n'est jamais un ancêtre de `main`. C'est l'état de la pull request qui fait foi :
+
+```bash
+gh pr list --state merged --json headRefName --jq '.[].headRefName'
+```
+
 ## 2. Protection de la branche `main`
 
 Règles activées sur `main` :
@@ -89,6 +97,12 @@ Comme la fusion se fait en squash (voir [§4](#4-fusion-des-pull-requests)), **c
 Cette liste peut être étendue si de nouveaux modules apparaissent dans le monorepo.
 
 Le titre est rédigé en anglais, comme tout artefact versionné ; le corps de la pull request reste en français. Voir [language.md](language.md).
+
+**Une correction hors du scope annoncé n'entre pas dans la pull request**, quelle que soit sa taille — une ligne comprise. Le titre devient le message de commit sur `main` (voir [§4](#4-fusion-des-pull-requests)) : glisser un changement `api` sous un titre `chore(ci)` rend l'historique menteur, et l'automatisation du changelog visée au [§8](#8-versioning-sémantique) ne verra jamais passer ce changement. La proximité dans le diff — « le fichier est déjà ouvert » — n'est pas un argument, c'est le mécanisme même de la dérive de périmètre.
+
+Ces corrections deviennent des issues, puis se regroupent par scope dans une pull request de nettoyage (`chore(api): remove leftovers from the uv init skeleton`), plutôt qu'une branche par ligne. C'est une commodité contre la cérémonie, pas une condition : une correction prête n'attend jamais qu'une seconde apparaisse.
+
+Une trouvaille qui **empêche la tâche d'aboutir** n'est en revanche pas hors scope : c'est une dépendance, elle entre dans la pull request et le corps l'explique.
 
 ## 4. Fusion des pull requests
 

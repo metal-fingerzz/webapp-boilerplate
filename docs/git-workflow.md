@@ -156,6 +156,8 @@ La dernière ligne n'est pas un oubli. **La majorité des fusions ne produit auc
 
 Chaque squash merge sur `main` déclenche `.github/workflows/release.yml`, **une fois la CI verte** : analyse des commits depuis le dernier tag → calcul du bump → **tag annoté** → release GitHub dont les notes regroupent les changements par type, avec un lien vers chaque pull request. Il n'y a plus rien à poser à la main.
 
+**Le rendu des notes est celui de l'outil, tel quel.** Les sections sont classées par ordre alphabétique — *Chores* avant *Features* — et les descriptions y apparaissent capitalisées, alors que les titres de pull request s'écrivent en minuscules ([§3](#3-convention-de-commits)). Les deux sont assumés : les corriger imposerait de versionner des templates Jinja et de les maintenir à chaque montée de version de l'outil, pour un gain purement cosmétique.
+
 Le workflow s'enchaîne sur la CI plutôt que de tourner à côté : `main` n'est jamais releasée sur un verdict rouge. Deux fusions coup sur coup annulent le premier run de CI et ne releasent donc rien — la suivante rattrape les deux, puisque l'analyse porte toujours sur l'intervalle depuis le dernier tag, jamais sur un commit isolé.
 
 ### La version vit dans le tag, nulle part ailleurs

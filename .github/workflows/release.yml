@@ -1,0 +1,58 @@
+name: Release
+
+# docs/git-workflow.md §8 — the commits merged since the last tag decide the
+# next version, the tag and the GitHub release. Nothing is ever committed back
+# to `main`: the released version lives in the tag and nowhere else, which is
+# what keeps this pipeline inside what the automatic GITHUB_TOKEN can do.
+#
+# It runs after CI rather than beside it, so `main` is never released on a red
+# verdict. Two merges in quick succession cancel the first CI run and therefore
+# release nothing; the next green run picks both up, since the analysis always
+# covers the whole range since the last tag rather than a single commit.
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  # Pushing the tag and creating the release. Nothing else is needed.
+  contents: write
+
+# One release at a time, and never drop a queued one: every merge has to be
+# analysed eventually.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and release
+    # `workflow_run` fires on every CI completion, failures and cancellations
+    # included.
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      # `main` rather than the analysed commit: semantic-release tags the tip of
+      # a release branch and refuses a detached HEAD. If a merge landed in
+      # between, this run simply releases both — which is the correct outcome.
+      - uses: actions/checkout@v7
+        with:
+          ref: main
+          # The current version is read from the last reachable tag; a shallow
+          # clone would find none and start over from zero.
+          fetch-depth: 0
+
+      # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      - name: Release
+        run: uv run poe release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

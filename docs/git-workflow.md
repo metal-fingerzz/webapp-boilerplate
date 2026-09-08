@@ -55,16 +55,19 @@ Règles activées sur `main` :
 - Merge bloqué si un **check CI échoue** (tests, lint, build) — aucune exception, y compris en urgence.
 - **Branche à jour avant fusion** (rebase requis sur `main`) : évite les régressions silencieuses entre deux PR fusionnées en parallèle.
 
-Les checks bloquants tiennent dans un seul workflow, `.github/workflows/ci.yml`, en deux jobs indépendants qui démarrent en même temps — un backend rouge laisse quand même voir le verdict du frontend :
+Les checks bloquants tiennent dans un seul workflow, `.github/workflows/ci.yml`, en trois jobs indépendants qui démarrent en même temps — un backend rouge laisse quand même voir le verdict du frontend :
 
 | Job | Étapes |
 |---|---|
 | `Backend` | `poe backend-lint` → `poe backend-test` → `poe backend-schema` |
 | `Frontend` | `poe frontend-lint` → `poe frontend-test` → `poe schema` → `poe frontend-build` |
+| `Release check` | `poe release-check` |
 
 Chaque étape appelle une tâche `poe`, jamais l'outil directement : ce qui échoue sur une pull request se rejoue à l'identique en local, où `poe lint`, `poe test` et `poe build` lancent les deux piles d'un coup.
 
-Deux choix méritent une justification. Le backend ne produit aucun bundle, c'est donc **le dump du schéma OpenAPI qui tient lieu de build** : il importe l'application entière — il échoue sur ce que la suite de tests ne traverse pas — et produit l'artefact dont le frontend tire ses types. Et le job `Frontend` régénère ce schéma pour son propre compte, car `frontend/src/api/schema.d.ts` est généré, donc non versionné, et `tsc -b` échoue sans lui ; le faire passer par un artefact aurait rendu le frontend dépendant du backend, et donc invisible chaque fois que celui-ci est rouge.
+Le troisième job n'appartient à aucune des deux piles : il **répète à blanc la release** du [§8](#8-versioning-sémantique) sur le résultat de la fusion. La CI ne joue autrement que le lint, les tests et le build — jamais la release. Sans ce job, une montée de version de l'outil de release passerait au vert, se fusionnerait, et ne casserait qu'à la fusion suivante, sur `main`, au moment où plus personne ne regarde. Le numéro de version qu'il affiche n'est en revanche pas une prédiction : la branche porte encore ses commits de travail informels, que le squash remplacera par le titre. Ce qui est testé, c'est la mécanique, pas le chiffre.
+
+Deux autres choix méritent une justification. Le backend ne produit aucun bundle, c'est donc **le dump du schéma OpenAPI qui tient lieu de build** : il importe l'application entière — il échoue sur ce que la suite de tests ne traverse pas — et produit l'artefact dont le frontend tire ses types. Et le job `Frontend` régénère ce schéma pour son propre compte, car `frontend/src/api/schema.d.ts` est généré, donc non versionné, et `tsc -b` échoue sans lui ; le faire passer par un artefact aurait rendu le frontend dépendant du backend, et donc invisible chaque fois que celui-ci est rouge.
 
 ## 3. Convention de commits
 
@@ -98,7 +101,7 @@ Cette liste peut être étendue si de nouveaux modules apparaissent dans le mono
 
 Le titre est rédigé en anglais, comme tout artefact versionné ; le corps de la pull request reste en français. Voir [language.md](language.md).
 
-**Une correction hors du scope annoncé n'entre pas dans la pull request**, quelle que soit sa taille — une ligne comprise. Le titre devient le message de commit sur `main` (voir [§4](#4-fusion-des-pull-requests)) : glisser un changement `api` sous un titre `chore(ci)` rend l'historique menteur, et l'automatisation du changelog visée au [§8](#8-versioning-sémantique) ne verra jamais passer ce changement. La proximité dans le diff — « le fichier est déjà ouvert » — n'est pas un argument, c'est le mécanisme même de la dérive de périmètre.
+**Une correction hors du scope annoncé n'entre pas dans la pull request**, quelle que soit sa taille — une ligne comprise. Le titre devient le message de commit sur `main` (voir [§4](#4-fusion-des-pull-requests)) : glisser un changement `api` sous un titre `chore(ci)` rend l'historique menteur, et le changelog automatique du [§8](#8-versioning-sémantique) ne verra jamais passer ce changement. La proximité dans le diff — « le fichier est déjà ouvert » — n'est pas un argument, c'est le mécanisme même de la dérive de périmètre.
 
 Ces corrections deviennent des issues, puis se regroupent par scope dans une pull request de nettoyage (`chore(api): remove leftovers from the uv init skeleton`), plutôt qu'une branche par ligne. C'est une commodité contre la cérémonie, pas une condition : une correction prête n'attend jamais qu'une seconde apparaisse.
 
@@ -136,24 +139,40 @@ Pas de branche `hotfix` dédiée — un seul chemin de fusion, accéléré humai
 
 ## 8. Versioning sémantique
 
-[SemVer](https://semver.org/) : `MAJOR.MINOR.PATCH`.
+[SemVer](https://semver.org/) : `MAJOR.MINOR.PATCH`. Le type du titre de la pull request — donc du commit de squash, voir [§3](#3-convention-de-commits) — détermine le bump :
 
-| Type de commit | Impact |
+| Type | Impact |
 |---|---|
-| `fix:` | PATCH (+0.0.1) |
-| `feat:` | MINOR (+0.1.0) |
-| `BREAKING CHANGE:` en footer | MAJOR (+1.0.0) |
+| `fix` | PATCH (+0.0.1) |
+| `feat` | MINOR (+0.1.0) |
+| `!` après le scope | MAJOR (+1.0.0) |
+| `chore`, `docs`, `refactor`, `test` | **aucun** |
 
-**Tags annotés** uniquement (jamais de tag léger) :
+La dernière ligne n'est pas un oubli. **La majorité des fusions ne produit aucune release**, et c'est le comportement correct : une version n'a de sens que si elle change quelque chose pour qui consomme le code. Ces commits ne disparaissent pas pour autant — ils sont reportés sur la release suivante, dont les notes listent tous les types.
+
+**Un changement cassant se déclare par un `!` dans le titre** : `feat(api)!: replace the session cookie with a bearer token`. Pas par un footer `BREAKING CHANGE:`. La raison est mécanique : le corps du commit de squash est composé par GitHub à la fusion, personne ne garantit ce qu'il contient, alors que le titre est la seule chose que la CI valide ([§3](#3-convention-de-commits)). Un footer déposé dans la description d'une pull request ne survit pas forcément au squash ; un `!` dans le titre, si.
+
+### Ce qui est automatisé
+
+Chaque squash merge sur `main` déclenche `.github/workflows/release.yml`, **une fois la CI verte** : analyse des commits depuis le dernier tag → calcul du bump → **tag annoté** → release GitHub dont les notes regroupent les changements par type, avec un lien vers chaque pull request. Il n'y a plus rien à poser à la main.
+
+Le workflow s'enchaîne sur la CI plutôt que de tourner à côté : `main` n'est jamais releasée sur un verdict rouge. Deux fusions coup sur coup annulent le premier run de CI et ne releasent donc rien — la suivante rattrape les deux, puisque l'analyse porte toujours sur l'intervalle depuis le dernier tag, jamais sur un commit isolé.
+
+### La version vit dans le tag, nulle part ailleurs
+
+Aucun `CHANGELOG.md` versionné, aucun commit de bot sur `main`, et les champs `version` de `backend/pyproject.toml` et `frontend/package.json` **ne sont pas tenus à jour** : ce sont des métadonnées de build inertes, rien ne les lit. Le changelog, c'est la page des releases GitHub.
+
+Ce choix a une contrepartie assumée et un bénéfice qui la dépasse. Écrire la version dans les fichiers imposerait de pousser un commit sur `main` — donc de contourner sa protection ([§2](#2-protection-de-la-branche-main)) avec un jeton personnel ou une GitHub App. En restant sur le tag, le pipeline n'a besoin que du `GITHUB_TOKEN` que GitHub Actions fabrique à chaque run : **rien à provisionner**, ce qui compte d'autant plus que ce dépôt est un template. Un dépôt créé depuis lui release correctement dès la première fusion, sans que personne n'ait eu à créer de secret, et sa première release est une `0.1.0`.
+
+### Aperçu local
+
+Depuis `main`, à jour :
 
 ```bash
-git tag -a v1.1.0 -m "Add Google login"
-git push origin v1.1.0
+poe release-check
 ```
 
-**État actuel : manuel.** Le tag est posé à la main après plusieurs merges sur `main`, le temps de bien ancrer la convention de commits dans les habitudes de l'équipe.
-
-**Cible future : automatisation via `semantic-release`.** Une fois les habitudes prises, chaque squash merge sur `main` déclenchera automatiquement : analyse des commits depuis le dernier tag → calcul du bump de version → génération du changelog → création du tag et de la release GitHub → déclenchement du déploiement CI/CD. Cette bascule est jugée peu risquée car le seul point d'application de la convention est le titre de la PR (un verrou unique, facile à vérifier en CI).
+Elle affiche la version qui serait publiée et les notes qui l'accompagneraient, sans rien écrire ni rien pousser. C'est la même tâche que joue le job `Release check` de la CI ([§2](#2-protection-de-la-branche-main)).
 
 ## 9. Exemple complet
 

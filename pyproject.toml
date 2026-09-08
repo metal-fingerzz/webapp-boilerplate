@@ -7,6 +7,7 @@ members = ["backend"]
 [dependency-groups]
 dev = [
   "poethepoet>=0.48.0",
+  "python-semantic-release>=10.6.2,<11.0.0",
 ]
 
 # --- Development ---
@@ -93,6 +94,16 @@ sequence = ["schema", "frontend-build"]
 ignore_fail = false
 help = ""
 
+# --- Release ---
+
+[tool.poe.tasks.release]
+cmd = "semantic-release version --no-commit --no-changelog --tag --push --vcs-release"
+help = ""
+
+[tool.poe.tasks.release-check]
+cmd = "semantic-release --noop version --no-commit --no-changelog --tag --push --vcs-release"
+help = ""
+
 # --- Migrations ---
 
 [tool.poe.tasks.revision]
@@ -110,3 +121,30 @@ help = ""
 cwd = "backend"
 cmd = "alembic upgrade head"
 help = ""
+
+# --- Release configuration ---
+
+# docs/git-workflow.md §8. The released version lives in the git tag and nowhere
+# else: `poe release` never commits, so it needs nothing beyond the GITHUB_TOKEN
+# that Actions mints for each run — no personal token, no branch protection
+# bypass, nothing to provision in a repository created from this template.
+
+[tool.semantic_release]
+tag_format = "v{version}"
+commit_parser = "conventional"
+# A repository created from this template starts without any tag. Without this,
+# its first release would be 1.0.0 instead of 0.1.0.
+allow_zero_version = true
+# Leaving 0.x stays a deliberate act: it takes a `!` in the pull request title.
+major_on_zero = true
+
+[tool.semantic_release.branches.main]
+match = "main"
+
+# Mirrors the closed list of §3, the one pr-title.yml already enforces on every
+# title. A type missing from this list parses as nothing and bumps nothing.
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "chore", "docs", "refactor", "test"]
+minor_tags = ["feat"]
+patch_tags = ["fix"]
+other_allowed_tags = ["chore", "docs", "refactor", "test"]

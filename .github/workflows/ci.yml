@@ -5,7 +5,9 @@ name: CI
 #
 # The two stacks run as two independent jobs: they share nothing, they start at
 # the same time, and a failure on one side still leaves the verdict of the other
-# visible on the pull request.
+# visible on the pull request. A third job belongs to neither stack: it
+# rehearses the release of §8, so that a merge never discovers on `main` that
+# the release machinery no longer runs.
 
 on:
   pull_request:
@@ -92,3 +94,36 @@ jobs:
 
       - name: Build
         run: uv run poe frontend-build
+
+  release-check:
+    name: Release check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          # The current version is read from the last reachable tag; a shallow
+          # clone would find none and start over from zero.
+          fetch-depth: 0
+
+      # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
+      - uses: astral-sh/setup-uv@v10.0.1
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --locked
+
+      # semantic-release only analyses a branch matching a release group (see
+      # pyproject.toml, [tool.semantic_release.branches.main]). On a pull
+      # request the checkout is a detached merge commit, which matches nothing:
+      # the tool then exits successfully without ever rendering the notes, and
+      # the check would stay green over a release that no longer works. Naming
+      # that merge commit `main` is what turns this step into a real rehearsal.
+      #
+      # The version it prints is not a prediction: the branch still carries its
+      # own informal commits, which the squash merge will replace with the
+      # title. What is being tested here is the machinery, not the number.
+      - name: Rehearse the release
+        run: |
+          git checkout -B main
+          uv run poe release-check

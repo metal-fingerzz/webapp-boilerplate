@@ -4,7 +4,6 @@ name = "api"
 # manifest. `uv_build` refuses to build without this field, so it stays pinned to
 # 0.0.0: nothing reads it, and nothing keeps it up to date.
 version = "0.0.0"
-description = "Add your description here"
 readme = "README.md"
 authors = [
     { name = "Thomas Backers", email = "thomas.backers@outlook.com" }

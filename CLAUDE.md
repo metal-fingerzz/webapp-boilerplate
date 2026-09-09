@@ -17,6 +17,8 @@ Ce document porte les conventions propres au travail avec un agent sur ce dépô
 
 Exposer l'analyse, les frictions réelles trouvées dans l'existant, et une recommandation argumentée. Présenter les arbitrages comme des options tranchées avec leurs contreparties, jamais comme un survol exhaustif. Puis attendre l'accord avant d'écrire quoi que ce soit.
 
+**L'accord porte sur ce qui a été relu, jamais sur ce qui vient après.** Valider une approche n'autorise pas à fusionner : la pull request s'ouvre, la CI tourne, l'agent s'arrête là et le signale au [§4](#4-clore-une-tâche). La relecture du diff est une seconde barrière, distincte de la première — un diff d'une ligne aux checks verts l'exige autant qu'un gros. La fusion, puis la suppression des branches, suivent l'accord explicite, jamais la seule couleur des checks.
+
 **Pourquoi.** Un agent produit du code bien plus vite qu'un humain ne le relit. Une mécompréhension ne coûte donc pas une correction : elle coûte tout ce qui a été généré par-dessus une prémisse fausse, plus les jetons dépensés à le défaire. La discussion préalable est aussi le seul moment où l'agent peut encore changer d'avis — après, il défend ce qu'il a déjà écrit.
 
 ## 2. Ce qui reste en suspens devient une issue
@@ -50,7 +52,7 @@ Une tâche close — menée à son terme, abandonnée ou bloquée — se termine
 | Rubrique | Contenu |
 |---|---|
 | **Fait** | Les livrables avec leur preuve — un numéro de commit, l'état des checks — pas « c'est terminé » |
-| **À toi** | Ce que l'agent ne peut pas faire : droits, décisions, réglages d'interface |
+| **À toi** | Ce que l'agent ne doit pas faire sans toi — au premier chef la fusion d'une pull request ([§1](#1-discuter-avant-dagir)) — et ce qu'il ne peut pas faire : droits, décisions, réglages d'interface |
 | **À tracer** | Les brouillons d'issues en attente de validation (§2) |
 | **Nettoyé** | Branches supprimées, processus arrêtés, et ce qui reste sale faute d'avoir pu le faire |
 

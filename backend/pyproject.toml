@@ -1,6 +1,9 @@
 [project]
 name = "api"
-version = "0.1.0"
+# docs/git-workflow.md §8. The released version lives in the git tag, never in a
+# manifest. `uv_build` refuses to build without this field, so it stays pinned to
+# 0.0.0: nothing reads it, and nothing keeps it up to date.
+version = "0.0.0"
 description = "Add your description here"
 readme = "README.md"
 authors = [

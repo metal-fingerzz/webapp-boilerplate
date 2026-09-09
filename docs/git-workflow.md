@@ -12,7 +12,8 @@ Ce document décrit les conventions Git de l'équipe : stratégie de branches, r
 6. [Suivi des tâches](#6-suivi-des-tâches)
 7. [Correctifs urgents](#7-correctifs-urgents)
 8. [Versioning sémantique](#8-versioning-sémantique)
-9. [Exemple complet](#9-exemple-complet)
+9. [Maintenance des dépendances](#9-maintenance-des-dépendances)
+10. [Exemple complet](#10-exemple-complet)
 
 ---
 
@@ -185,7 +186,29 @@ poe release-check
 
 Elle affiche la version qui serait publiée et les notes qui l'accompagneraient, sans rien écrire ni rien pousser. C'est la même tâche que joue le job `Release check` de la CI ([§2](#2-protection-de-la-branche-main)).
 
-## 9. Exemple complet
+## 9. Maintenance des dépendances
+
+Les versions sont épinglées à la majeure près (`add-bounds = "major"` côté `uv`, `^` côté pnpm), et `astral-sh/setup-uv` l'est à la patch près faute de tag mouvant. Épingler sans robot pour faire vivre les pins, c'est la recette du pin qui fossilise : **un dépôt template se clone longtemps après avoir été écrit**, et rien ne serait pire qu'un premier clone qui démarre sur une pile périmée.
+
+**Dependabot**, configuré par `.github/dependabot.yml`, plutôt que Renovate. Renovate est plus configurable, mais s'installe comme GitHub App sur chaque dépôt : ça casse la propriété « rien à provisionner » qui a guidé le [§8](#8-versioning-sémantique). Dependabot est natif et se copie avec le template.
+
+Trois écosystèmes, mais deux fichiers de configuration seulement : `uv.lock` est unique et vit à la racine, son workspace couvrant `backend/` ; le frontend a son propre lockfile pnpm ; les actions se scannent depuis la racine.
+
+| Écosystème | Emplacement | Couvre |
+|---|---|---|
+| `uv` | `/` | `pyproject.toml` racine et `backend/pyproject.toml` |
+| `npm` | `/frontend` | `frontend/package.json`, lockfile pnpm |
+| `github-actions` | `/` | `.github/workflows/` |
+
+**Hebdomadaire, et les majeures s'ouvrent comme les autres.** Une cadence mensuelle laisse s'installer exactement la fossilisation qu'on veut éviter ; une cadence quotidienne est du bruit. Et refuser les majeures ne fait que fossiliser un cran plus haut : le filet, c'est la CI du [§2](#2-protection-de-la-branche-main) — lint, tests, build, plus le `Release check` qui répète la release à blanc. Une majeure qui demande du travail se ferme et devient une issue ([§6](#6-suivi-des-tâches)).
+
+**Les montées mineures et patch sont groupées par écosystème, les majeures restent seules.** Le bruit est dans les patches, la charge de relecture est dans les majeures. Sans groupage, la limite de cinq pull requests ouvertes sature en permanence et le robot devient un mur qu'on ignore — le pire des deux mondes. Le [§5](#5-taille-des-pull-requests) n'y fait pas obstacle : les lockfiles sont déjà exclus du calcul de taille.
+
+**Le scope s'écrit en dur dans `commit-message.prefix`.** L'option `include: "scope"` de Dependabot ajouterait automatiquement `(deps)` ou `(deps-dev)` selon le type de dépendance — or `deps-dev` n'appartient pas à la liste fermée du [§3](#3-convention-de-commits), et `pr-title.yml` rejetterait toute pull request touchant une dépendance de développement, c'est-à-dire la majorité. En posant `chore(deps)` en entier, Dependabot complète avec une description en minuscule et sans point final, ce que valide `subjectPattern`.
+
+Reste une conséquence à assumer : `chore` ne produit **aucune release** ([§8](#8-versioning-sémantique)). Une montée de version n'apparaît donc que dans les notes de la release suivante, portée par un `feat` ou un `fix`. C'est le comportement correct — une dépendance mise à jour ne change rien pour qui consomme le code.
+
+## 10. Exemple complet
 
 **Branche**
 ```

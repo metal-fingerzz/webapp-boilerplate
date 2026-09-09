@@ -1,0 +1,52 @@
+version: 2
+
+# docs/git-workflow.md §9 — un dépôt template se clone longtemps après avoir
+# été écrit. Sans robot, les versions épinglées ici fossilisent et le premier
+# clone démarre sur une pile périmée.
+#
+# Deux fichiers de configuration suffisent pour trois écosystèmes : `uv.lock`
+# est unique et vit à la racine, le workspace couvrant `backend/` (voir
+# pyproject.toml, [tool.uv.workspace]). Le frontend a son propre lockfile pnpm,
+# et les actions se scannent depuis la racine.
+
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    # §3 — la liste des scopes est fermée, et `include: "scope"` produirait
+    # `chore(deps-dev)` pour toute dépendance de développement : pr-title.yml
+    # rejetterait alors la majorité des pull requests du robot. Le scope
+    # s'écrit donc en dur, et Dependabot complète en minuscule sans point
+    # final, ce que valide `subjectPattern`.
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      # Le bruit est dans les patches, la charge de relecture dans les
+      # majeures : les premières tiennent dans une pull request par écosystème,
+      # les secondes s'ouvrent seules, une par dépendance.
+      uv:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /frontend
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      npm:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      github-actions:
+        update-types: [minor, patch]

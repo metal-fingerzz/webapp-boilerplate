@@ -41,8 +41,21 @@ jobs:
             deps
             repo
           requireScope: true
-          # Lowercase description, no trailing period.
-          subjectPattern: ^(?![A-Z])(?!.*\.$).+$
+          # Lowercase description, no trailing period — except for Dependabot,
+          # which capitalises the description it composes ("chore(deps): Bump
+          # alembic from ...") and offers no option to stop it. The scope stays
+          # enforced for everyone; only the capital is conceded, and only to the
+          # bot. Matching on the pull request author rather than on
+          # `github.actor`, which becomes a human as soon as anyone edits the
+          # pull request. See docs/git-workflow.md §9.
+          subjectPattern: >-
+            ${{ github.event.pull_request.user.login == 'dependabot[bot]'
+            && '^(?!.*\.$).+$' || '^(?![A-Z])(?!.*\.$).+$' }}
+          # Conditioned on the same author as the pattern above, so each
+          # author is told exactly the rules that apply to them.
           subjectPatternError: >-
-            The description "{subject}" is invalid: it must start with a
-            lowercase letter and must not end with a period.
+            ${{ github.event.pull_request.user.login == 'dependabot[bot]'
+            && 'The description "{subject}" is invalid: it must not end with a
+            period.'
+            || 'The description "{subject}" is invalid: it must start with a
+            lowercase letter and must not end with a period.' }}

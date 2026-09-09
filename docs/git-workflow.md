@@ -162,7 +162,16 @@ Le workflow s'enchaîne sur la CI plutôt que de tourner à côté : `main` n'es
 
 ### La version vit dans le tag, nulle part ailleurs
 
-Aucun `CHANGELOG.md` versionné, aucun commit de bot sur `main`, et les champs `version` de `backend/pyproject.toml` et `frontend/package.json` **ne sont pas tenus à jour** : ce sont des métadonnées de build inertes, rien ne les lit. Le changelog, c'est la page des releases GitHub.
+Aucun `CHANGELOG.md` versionné, aucun commit de bot sur `main`, et **aucun manifeste ne porte la version**. Le changelog, c'est la page des releases GitHub ; le numéro de version, c'est `git tag`.
+
+Les deux manifestes sont traités différemment, parce que leur outillage ne laisse pas la même marge :
+
+| Fichier | État | Raison |
+|---|---|---|
+| `frontend/package.json` | aucun champ `version` | Le paquet est `private`, npm n'en exige pas |
+| `backend/pyproject.toml` | `version = "0.0.0"`, figé | `uv_build` refuse de construire sans ce champ. `uv.lock` en recopie la valeur |
+
+`0.0.0` n'est pas une version : c'est la valeur qui n'affirme rien, choisie pour qu'un champ impossible à supprimer ne puisse pas non plus être pris pour la version publiée. Un commentaire sur place le dit.
 
 Ce choix a une contrepartie assumée et un bénéfice qui la dépasse. Écrire la version dans les fichiers imposerait de pousser un commit sur `main` — donc de contourner sa protection ([§2](#2-protection-de-la-branche-main)) avec un jeton personnel ou une GitHub App. En restant sur le tag, le pipeline n'a besoin que du `GITHUB_TOKEN` que GitHub Actions fabrique à chaque run : **rien à provisionner**, ce qui compte d'autant plus que ce dépôt est un template. Un dépôt créé depuis lui release correctement dès la première fusion, sans que personne n'ait eu à créer de secret, et sa première release est une `0.1.0`.
 

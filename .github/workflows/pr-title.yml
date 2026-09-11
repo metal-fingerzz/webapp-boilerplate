@@ -12,8 +12,16 @@ permissions:
   pull-requests: read
 
 concurrency:
+  # `cancel-in-progress` is left at its GitHub default of `false` on purpose,
+  # spelled out rather than omitted so it does not get flipped back by reflex.
+  # Cancelling only pays off on a long workflow where just the latest commit
+  # matters; this one takes a few seconds, so it saves nothing and costs a
+  # verdict. Two events landing in the same second — Dependabot's force-push and
+  # the title edit that follows it — cancel each other out, leaving the head SHA
+  # with no surviving run and this blocking check stuck on a stale verdict.
+  # Queueing keeps every event, and the last one to arrive still runs last.
   group: pr-title-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   validate:

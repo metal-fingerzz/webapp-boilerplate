@@ -14,8 +14,12 @@ permissions:
   pull-requests: write
 
 concurrency:
+  # Same clause, same race, same fix as pr-title.yml: two events in the same
+  # second cancel each other out and the label is never refreshed. Nothing is
+  # blocked here, only left stale, but the asymmetry would cost more to explain
+  # than the cancellation ever saved.
   group: pr-size-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   label:

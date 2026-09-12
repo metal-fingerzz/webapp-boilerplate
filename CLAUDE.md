@@ -5,10 +5,11 @@ Ce document porte les conventions propres au travail avec un agent sur ce dépô
 ## Sommaire
 
 1. [Discuter avant d'agir](#1-discuter-avant-dagir)
-2. [Montrer les fichiers avant de figer](#2-montrer-les-fichiers-avant-de-figer)
-3. [Ce qui reste en suspens devient une issue](#3-ce-qui-reste-en-suspens-devient-une-issue)
-4. [Les trouvailles annexes](#4-les-trouvailles-annexes)
-5. [Clore une tâche](#5-clore-une-tâche)
+2. [Présenter un chantier en tableaux](#2-présenter-un-chantier-en-tableaux)
+3. [Montrer les fichiers avant de figer](#3-montrer-les-fichiers-avant-de-figer)
+4. [Ce qui reste en suspens devient une issue](#4-ce-qui-reste-en-suspens-devient-une-issue)
+5. [Les trouvailles annexes](#5-les-trouvailles-annexes)
+6. [Clore une tâche](#6-clore-une-tâche)
 
 ---
 
@@ -18,21 +19,33 @@ Ce document porte les conventions propres au travail avec un agent sur ce dépô
 
 Exposer l'analyse, les frictions réelles trouvées dans l'existant, et une recommandation argumentée. Présenter les arbitrages comme des options tranchées avec leurs contreparties, jamais comme un survol exhaustif. Puis attendre l'accord avant d'écrire quoi que ce soit.
 
-**L'accord porte sur ce qui a été relu, jamais sur ce qui vient après.** Valider une approche n'autorise pas à fusionner : la pull request s'ouvre, la CI tourne, l'agent s'arrête là et le signale au [§5](#5-clore-une-tâche). La relecture du diff est une seconde barrière, distincte de la première — un diff d'une ligne aux checks verts l'exige autant qu'un gros. La fusion, puis la suppression des branches, suivent l'accord explicite, jamais la seule couleur des checks.
+**L'accord porte sur ce qui a été relu, jamais sur ce qui vient après.** Valider une approche n'autorise pas à fusionner : la pull request s'ouvre, la CI tourne, l'agent s'arrête là et le signale au [§6](#6-clore-une-tâche). La relecture du diff est une seconde barrière, distincte de la première — un diff d'une ligne aux checks verts l'exige autant qu'un gros. La fusion, puis la suppression des branches, suivent l'accord explicite, jamais la seule couleur des checks.
 
 **Pourquoi.** Un agent produit du code bien plus vite qu'un humain ne le relit. Une mécompréhension ne coûte donc pas une correction : elle coûte tout ce qui a été généré par-dessus une prémisse fausse, plus les jetons dépensés à le défaire. La discussion préalable est aussi le seul moment où l'agent peut encore changer d'avis — après, il défend ce qu'il a déjà écrit.
 
-## 2. Montrer les fichiers avant de figer
+## 2. Présenter un chantier en tableaux
+
+**Un chantier s'expose en tableaux avant que la première ligne ne s'écrive** : les commandes avec leur usage et leur effet, les fichiers créés ou modifiés avec la raison de chacun, et — la ligne qui compte — ceux qu'on ne touche pas, avec pourquoi.
+
+Le déclencheur est le chantier : une feature, une issue, une refonte. Pas chaque message, sans quoi le format devient le tic administratif contre lequel le [§6](#6-clore-une-tâche) prémunit déjà ses propres rubriques. Un correctif d'une ligne se discute en une phrase.
+
+Ce n'est pas un gabarit de prose. L'analyse, les frictions trouvées dans l'existant et la recommandation argumentée du [§1](#1-discuter-avant-dagir) restent du texte ; les tableaux ne portent que ce qui s'énumère.
+
+**Pourquoi.** Un tableau rend l'omission visible : « ce que je ne touche pas » se relit d'un coup d'œil, là où le même engagement noyé dans un paragraphe ne se vérifie pas. C'est ce qui rend l'accord du [§1](#1-discuter-avant-dagir) informé plutôt que consenti. Le format ne tient d'ailleurs pas à l'agent — une issue rédigée par un humain gagne les mêmes colonnes.
+
+Le tableau du [§3](#3-montrer-les-fichiers-avant-de-figer) en est la version tardive : celui-ci porte des intentions sur un arbre de travail encore vide, l'autre un diff prêt à figer.
+
+## 3. Montrer les fichiers avant de figer
 
 **Avant tout `git commit`, la liste des fichiers touchés passe sous les yeux de la personne** — un tableau : le chemin, la nature du changement, ce qu'il fait en une ligne. Puis l'agent s'arrête. Le découpage en un ou plusieurs commits reste à son initiative ; c'est le contenu qui se relit, pas la découpe.
 
 **Pourquoi.** Le [§1](#1-discuter-avant-dagir) pose que l'accord porte sur ce qui a été relu. La pull request est le lieu de cette relecture, mais elle arrive après coup : savoir ce qui a bougé demande d'ouvrir GitHub et de naviguer dans un diff déjà inscrit dans l'historique. La même information affichée dans le terminal, avant le commit, coûte un coup d'œil — et c'est le dernier moment où retirer un fichier de trop ne demande de réécrire rien du tout.
 
-Ne pas confondre avec la rubrique « Fait » du [§5](#5-clore-une-tâche), qui vient après et porte des preuves : numéros de commit, état des checks. Celle-ci porte des intentions, sur un arbre de travail encore modifiable.
+Ne pas confondre avec la rubrique « Fait » du [§6](#6-clore-une-tâche), qui vient après et porte des preuves : numéros de commit, état des checks. Celle-ci porte des intentions, sur un arbre de travail encore modifiable.
 
 L'accord sur cette liste porte sur le commit, le push et l'ouverture de la pull request. Il ne vaut pas fusion : celle-ci reste soumise au [§1](#1-discuter-avant-dagir).
 
-## 3. Ce qui reste en suspens devient une issue
+## 4. Ce qui reste en suspens devient une issue
 
 Une question posée trois fois dans une conversation et jamais tranchée n'existe nulle part une fois la conversation close. À la clôture d'une tâche, ce qui est resté en suspens est donc listé, avec un brouillon d'issue prêt — **et c'est la personne qui valide sa création.**
 
@@ -45,7 +58,7 @@ Une question posée trois fois dans une conversation et jamais tranchée n'exist
 
 Le brouillon porte le constat vérifié, une preuve reproductible, la raison pour laquelle ce n'était pas dans la pull request, et l'arbitrage qui reste à faire. Un renvoi à la conversation ne vaut rien : personne ne la relira.
 
-## 4. Les trouvailles annexes
+## 5. Les trouvailles annexes
 
 Ce qu'on remarque en passant, sans jamais en faire une question : le critère d'entrée dans la pull request en cours est **le scope de son titre**, jamais la taille du correctif. La règle et sa justification sont au [§3 du workflow Git](docs/git-workflow.md#3-convention-de-commits).
 
@@ -53,10 +66,10 @@ Ce qu'on remarque en passant, sans jamais en faire une question : le critère d'
 |---|---|
 | Elle empêche la tâche d'aboutir | Entre dans la pull request : c'est une dépendance, pas une trouvaille |
 | Elle tient dans le scope du titre | Entre dans la pull request, et le corps la signale |
-| Elle est hors scope | Issue, selon le §3 ci-dessus |
+| Elle est hors scope | Issue, selon le §4 ci-dessus |
 | Son absence ne coûte rien | Une phrase dans la conclusion |
 
-## 5. Clore une tâche
+## 6. Clore une tâche
 
 Une tâche close — menée à son terme, abandonnée ou bloquée — se termine par un état des lieux en quatre rubriques, **toujours affichées, même vides** : « rien à nettoyer » prouve qu'on a regardé, le silence ne prouve rien.
 
@@ -64,7 +77,7 @@ Une tâche close — menée à son terme, abandonnée ou bloquée — se termine
 |---|---|
 | **Fait** | Les livrables avec leur preuve — un numéro de commit, l'état des checks — pas « c'est terminé » |
 | **À toi** | Ce que l'agent ne doit pas faire sans toi — au premier chef la fusion d'une pull request ([§1](#1-discuter-avant-dagir)) — et ce qu'il ne peut pas faire : droits, décisions, réglages d'interface |
-| **À tracer** | Les brouillons d'issues en attente de validation (§3) |
+| **À tracer** | Les brouillons d'issues en attente de validation (§4) |
 | **Nettoyé** | Branches supprimées, processus arrêtés, et ce qui reste sale faute d'avoir pu le faire |
 
 Le déclencheur est la clôture d'une tâche, pas la fin de chaque message : autrement le rituel devient un tic administratif.

@@ -1,0 +1,42 @@
+# The development database. `poe db-up` starts it, `poe db-down` stops it and
+# `poe db-reset` empties it; see docs/database.md.
+#
+# The credentials are written here rather than read from
+# backend/.env.development, which declares a single DATABASE_URL where this file
+# needs three separate variables. No single source of truth is reachable without
+# a third environment file above both, so the three values are duplicated and
+# the .env file stays the one the application reads.
+
+services:
+  db:
+    # Debian, not alpine: musl has no real locale support, so text collation
+    # falls back to byte order and stops matching what a managed PostgreSQL
+    # does. The major is pinned, the patch is not — `docker compose pull` picks
+    # up 18.x fixes, and Dependabot proposes the next major (see
+    # .github/dependabot.yml).
+    image: postgres:18
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+      POSTGRES_DB: app
+    ports:
+      - "5432:5432"
+    # PostgreSQL 18 moved PGDATA to /var/lib/postgresql/18/docker, and the image
+    # declares its volume on /var/lib/postgresql — not on the
+    # /var/lib/postgresql/data most examples still mount. Mounting that older
+    # path fails silently: the data lands in an anonymous volume, and the next
+    # `docker compose down` drops it without a word.
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      # `poe db-up` passes --wait, which returns only once this command
+      # succeeds. Without it the task returns while PostgreSQL is still
+      # starting, and a `poe migrate` chained behind it fails on a refused
+      # connection.
+      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      interval: 2s
+      timeout: 2s
+      retries: 15
+
+volumes:
+  db-data:

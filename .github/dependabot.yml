@@ -50,3 +50,18 @@ updates:
     groups:
       github-actions:
         update-types: [minor, patch]
+
+  # `docker-compose` is an ecosystem of its own, distinct from `docker`, which
+  # only covers Dockerfiles. Without this entry the image pinned in
+  # compose.yaml would fossilise — exactly what §9 refuses for every other
+  # pinned version.
+  - package-ecosystem: docker-compose
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: chore(deps)
+    groups:
+      docker-compose:
+        update-types: [minor, patch]

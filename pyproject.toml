@@ -104,6 +104,28 @@ help = ""
 cmd = "semantic-release --noop version --no-commit --no-changelog --tag --push --vcs-release"
 help = ""
 
+# --- Database ---
+
+# docs/database.md. `docker compose` goes through poe like every other entry
+# point of the monorepo, so that what a contributor types is the same on both
+# stacks — and so that `--wait` is never left out by hand.
+
+[tool.poe.tasks.db-up]
+cmd = "docker compose up --detach --wait"
+help = ""
+
+[tool.poe.tasks.db-down]
+cmd = "docker compose down"
+help = ""
+
+[tool.poe.tasks.db-reset]
+sequence = [
+  { cmd = "docker compose down --volumes" },
+  { cmd = "docker compose up --detach --wait" },
+]
+ignore_fail = false
+help = ""
+
 # --- Migrations ---
 
 [tool.poe.tasks.revision]

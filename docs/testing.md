@@ -178,12 +178,14 @@ Côté frontend, `src/main.tsx` est exclu du rapport : ce point d'entrée ne fai
 
 ## 9. Tests base de données
 
-**À définir.** Il n'existe aujourd'hui ni engine, ni sessionmaker, ni modèle : `api/database/` ne contient que la classe `Base`. Concevoir des fixtures contre une couche de persistance qui n'existe pas reviendrait à figer des suppositions qu'il faudrait réécrire à la première migration.
+**À définir — et c'est ici que la décision s'écrira**, pas dans une issue tenue en parallèle. Ce qui manquait à cette section n'était pas un endroit pour vivre, mais le moment où elle devient décidable : **la première pull request qui introduira un engine, un sessionmaker et un premier modèle.** Tant qu'`api/database/` ne contient que la classe `Base`, concevoir des fixtures contre une couche de persistance qui n'existe pas reviendrait à figer des suppositions qu'il faudrait réécrire à la première migration.
 
-À trancher lorsque cette couche arrivera :
+À trancher dans cette pull request :
 
-- base réelle partagée ou conteneur jetable par exécution ;
-- isolation par rollback transactionnel à chaque test, ou recréation du schéma ;
-- constitution des données de départ (fixtures explicites ou fabriques).
+- **Base réelle partagée ou conteneur jetable par exécution.** Cette question ne se pose plus à vide : il existe désormais un `compose.yaml` et un `poe db-reset` (voir [database.md](database.md)). Réutiliser ce service avec une base dédiée aux tests est l'option qui part gagnante, et testcontainers a maintenant à se justifier contre elle plutôt que contre rien.
+- **Isolation par rollback transactionnel à chaque test, ou recréation du schéma.**
+- **Constitution des données de départ : fixtures explicites ou fabriques.**
 
 Un point est en revanche déjà acquis : **ne pas substituer SQLite à PostgreSQL**. Le projet cible PostgreSQL via `asyncpg`, et les divergences de types, de contraintes et de DDL rendraient les tests non représentatifs de ce qui tourne en production — précisément là où un test de persistance a de la valeur.
+
+> **Piège connu.** `backend/.env.test` déclare `postgresql+asyncpg://test:test@localhost:5432/test` — rôle `test`, base `test` — là où `compose.yaml` crée le rôle et la base `app`. Sans conséquence aujourd'hui puisque la suite n'ouvre aucune connexion (voir [§7](#7-configuration-des-tests)), et c'est précisément ce qui en fait un piège : le premier test qui se connectera échouera sur une authentification refusée, pas sur son sujet. Il faudra alors soit créer ce rôle et cette base dans le service, soit aligner l'URL sur celle du compose.

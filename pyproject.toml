@@ -18,12 +18,12 @@ ENV = "development"
 [tool.poe.tasks.backend-dev]
 cwd = "backend"
 cmd = "fastapi dev src/api/main.py"
-help = ""
+help = "Run the API with autoreload"
 
 [tool.poe.tasks.frontend-dev]
 cwd = "frontend"
 shell = "pnpm run dev"
-help = ""
+help = "Run the web app with hot module replacement"
 
 # --- Lint ---
 
@@ -33,7 +33,7 @@ sequence = [
   { cmd = "ruff format --check .", cwd = "backend" },
 ]
 ignore_fail = false
-help = ""
+help = "Check the Python code and its formatting, without fixing anything"
 
 [tool.poe.tasks.frontend-lint]
 sequence = [
@@ -41,68 +41,68 @@ sequence = [
   { shell = "pnpm run format:check", cwd = "frontend" },
 ]
 ignore_fail = false
-help = ""
+help = "Check the TypeScript code and its formatting, without fixing anything"
 
 [tool.poe.tasks.lint]
 sequence = ["backend-lint", "frontend-lint"]
 ignore_fail = false
-help = ""
+help = "Check both stacks, as the CI does"
 
 # --- Tests ---
 
 [tool.poe.tasks.backend-test]
 cwd = "backend"
 cmd = "pytest --cov=api --cov-report=term-missing"
-help = ""
+help = "Run the Python test suite with a coverage report"
 
 [tool.poe.tasks.frontend-test]
 cwd = "frontend"
 shell = "pnpm run test --coverage"
-help = ""
+help = "Run the React test suite with a coverage report"
 
 [tool.poe.tasks.test]
 sequence = ["backend-test", "frontend-test"]
 ignore_fail = false
-help = ""
+help = "Run both test suites, as the CI does"
 
 # --- Schema ---
 
 [tool.poe.tasks.backend-schema]
 cwd = "backend"
 cmd = "python -m scripts.dump_openapi_schema"
-help = ""
+help = "Dump the OpenAPI schema the frontend types are generated from"
 
 [tool.poe.tasks.frontend-schema]
 cwd = "frontend"
 shell = "pnpm run generate:schema"
-help = ""
+help = "Generate the TypeScript types from the dumped OpenAPI schema"
 
 [tool.poe.tasks.schema]
 sequence = ["backend-schema", "frontend-schema"]
 ignore_fail = false
-help = ""
+help = "Dump the OpenAPI schema, then generate the types from it"
 
 # --- Build ---
 
 [tool.poe.tasks.frontend-build]
 cwd = "frontend"
 shell = "pnpm run build"
-help = ""
+help = "Type-check the web app and build its production bundle"
 
 [tool.poe.tasks.build]
 sequence = ["schema", "frontend-build"]
 ignore_fail = false
-help = ""
+help = "Regenerate the types, then build the production bundle"
 
 # --- Release ---
 
 [tool.poe.tasks.release]
 cmd = "semantic-release version --no-commit --no-changelog --tag --push --vcs-release"
-help = ""
+help = "Tag the next version, push it and publish the GitHub release"
 
 [tool.poe.tasks.release-check]
 cmd = "semantic-release --noop version --no-commit --no-changelog --tag --push --vcs-release"
-help = ""
+help = "Rehearse the release without tagging or publishing anything"
 
 # --- Database ---
 
@@ -112,11 +112,11 @@ help = ""
 
 [tool.poe.tasks.db-up]
 cmd = "docker compose up --detach --wait"
-help = ""
+help = "Start the development database and wait until it accepts connections"
 
 [tool.poe.tasks.db-down]
 cmd = "docker compose down"
-help = ""
+help = "Stop the development database, keeping its data"
 
 [tool.poe.tasks.db-reset]
 sequence = [
@@ -124,25 +124,25 @@ sequence = [
   { cmd = "docker compose up --detach --wait" },
 ]
 ignore_fail = false
-help = ""
+help = "Destroy the development database and start an empty one"
 
 # --- Migrations ---
 
 [tool.poe.tasks.revision]
 cwd = "backend"
 cmd = "alembic revision --autogenerate -m ${message}"
-help = ""
+help = "Autogenerate a migration from the models, against the running database"
 
   [[tool.poe.tasks.revision.args]]
   name = "message"
   options = ["-m", "--message"]
   required = true
-  help = ""
+  help = "What the migration does, used in its file name"
 
 [tool.poe.tasks.migrate]
 cwd = "backend"
 cmd = "alembic upgrade head"
-help = ""
+help = "Apply every pending migration to the database"
 
 # --- Release configuration ---
 

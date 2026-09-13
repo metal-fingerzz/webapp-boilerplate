@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v7
 
       # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
 
@@ -64,7 +64,7 @@ jobs:
       # dependency on the backend job, which would hide the frontend verdict
       # every time the backend is red.
       # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
 
@@ -106,7 +106,7 @@ jobs:
           fetch-depth: 0
 
       # Pinned to a patch version: setup-uv publishes no moving tag beyond v7.
-      - uses: astral-sh/setup-uv@v10.0.1
+      - uses: astral-sh/setup-uv@v10.1.0
         with:
           enable-cache: true
 

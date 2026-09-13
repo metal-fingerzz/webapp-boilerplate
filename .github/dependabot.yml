@@ -1,13 +1,14 @@
 version: 2
 
-# docs/git-workflow.md §9 — un dépôt template se clone longtemps après avoir
-# été écrit. Sans robot, les versions épinglées ici fossilisent et le premier
-# clone démarre sur une pile périmée.
+# docs/git-workflow.md §9 — a template repository is cloned long after it was
+# written. Without a robot, the versions pinned here fossilise and the first
+# clone starts on a stale stack.
 #
-# Deux fichiers de configuration suffisent pour trois écosystèmes : `uv.lock`
-# est unique et vit à la racine, le workspace couvrant `backend/` (voir
-# pyproject.toml, [tool.uv.workspace]). Le frontend a son propre lockfile pnpm,
-# et les actions se scannent depuis la racine.
+# Three manifests cover four ecosystems: `uv.lock` is unique and lives at the
+# root, the workspace covering `backend/` (see pyproject.toml,
+# [tool.uv.workspace]); the frontend has its own pnpm lockfile; compose.yaml
+# sits at the root. The actions need no manifest, they are scanned from the
+# root too.
 
 updates:
   - package-ecosystem: uv
@@ -15,17 +16,17 @@ updates:
     schedule:
       interval: weekly
       day: monday
-    # §3 — la liste des scopes est fermée, et `include: "scope"` produirait
-    # `chore(deps-dev)` pour toute dépendance de développement : pr-title.yml
-    # rejetterait alors la majorité des pull requests du robot. Le scope
-    # s'écrit donc en dur, et Dependabot complète en minuscule sans point
-    # final, ce que valide `subjectPattern`.
+    # §3 — the list of scopes is closed, and `include: "scope"` would produce
+    # `chore(deps-dev)` for every development dependency: pr-title.yml would
+    # then reject most of the robot's pull requests. The scope is therefore
+    # hardcoded, and Dependabot completes it in lowercase with no trailing
+    # period, which is what `subjectPattern` accepts.
     commit-message:
       prefix: chore(deps)
     groups:
-      # Le bruit est dans les patches, la charge de relecture dans les
-      # majeures : les premières tiennent dans une pull request par écosystème,
-      # les secondes s'ouvrent seules, une par dépendance.
+      # The noise is in the patches, the review load in the majors: the
+      # former fit into one pull request per ecosystem, the latter open on
+      # their own, one per dependency.
       uv:
         update-types: [minor, patch]
 

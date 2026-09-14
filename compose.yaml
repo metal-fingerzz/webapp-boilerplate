@@ -16,9 +16,9 @@ services:
     # .github/dependabot.yml).
     image: postgres:18
     environment:
-      POSTGRES_USER: app
-      POSTGRES_PASSWORD: app
-      POSTGRES_DB: app
+      POSTGRES_USER: usr
+      POSTGRES_PASSWORD: pswd
+      POSTGRES_DB: dev
     ports:
       - "5432:5432"
     # PostgreSQL 18 moved PGDATA to /var/lib/postgresql/18/docker, and the image
@@ -33,7 +33,7 @@ services:
       # succeeds. Without it the task returns while PostgreSQL is still
       # starting, and a `poe migrate` chained behind it fails on a refused
       # connection.
-      test: ["CMD-SHELL", "pg_isready -U app -d app"]
+      test: ["CMD-SHELL", "pg_isready -U usr -d dev"]
       interval: 2s
       timeout: 2s
       retries: 15

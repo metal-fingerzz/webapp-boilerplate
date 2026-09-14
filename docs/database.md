@@ -46,12 +46,14 @@ C'est un choix, pas un défaut de l'outil. Une base jetable à chaque arrêt ren
 `backend/.env.development` est le fichier que l'application lit :
 
 ```
-DATABASE_URL=postgresql+asyncpg://app:app@localhost:5432/app
+DATABASE_URL=postgresql+asyncpg://usr:pswd@localhost:5432/dev
 ```
 
 `compose.yaml` réécrit les mêmes valeurs dans `POSTGRES_USER`, `POSTGRES_PASSWORD` et `POSTGRES_DB`. Cette duplication est assumée : les deux fichiers ne parlent pas le même vocabulaire — une URL d'un côté, trois variables de l'autre — et les réconcilier demanderait un troisième fichier d'environnement à la racine, lu par les deux. Trois chaînes de développement dupliquées, commentées de part et d'autre, coûtent moins que ce fichier supplémentaire. En cas de divergence, c'est `.env.development` qui fait foi : le compose se cale dessus.
 
-Ces identifiants sont versionnés en clair parce qu'ils ne donnent accès qu'à une base locale, jetable, sans donnée réelle. Rien de ce fichier ne vaut pour un déploiement.
+Ces identifiants sont versionnés en clair parce qu'ils ne donnent accès qu'à une base locale, jetable, sans donnée réelle. Rien de ce fichier ne vaut pour un déploiement, et les noms le disent d'eux-mêmes : `usr`, `pswd` et `dev` ne ressemblent à aucun identifiant qu'on serait tenté de reprendre ailleurs.
+
+**Le rôle ne s'appelle pas `user`**, pourtant plus lisible : c'est un mot réservé de PostgreSQL. La connexion passe, mais toute requête qui nomme le rôle doit alors le citer entre guillemets — `GRANT CONNECT ON DATABASE dev TO user` échoue sur une erreur de syntaxe — et `SELECT user` renvoie le rôle connecté, quel qu'il soit. `usr` épargne ce piège à chaque requête écrite à la main.
 
 ## 4. Choix de l'image
 

@@ -1,6 +1,6 @@
 # Base de données de développement
 
-Ce document décrit la base PostgreSQL locale : comment la lancer, ce que chaque tâche `poe` fait réellement, et les choix inscrits dans `compose.yaml`. Il ne traite pas des tests contre une base — cette question reste ouverte, voir [testing.md §9](testing.md#9-tests-base-de-données).
+Ce document décrit la base PostgreSQL locale : comment la lancer, ce que chaque tâche `poe` fait réellement, et les choix inscrits dans `compose.yaml`. Il ne traite pas des tests contre une base : la suite crée la sienne sur ce même serveur, et `compose.yaml` n'en sait rien — voir [testing.md §9](testing.md#9-tests-base-de-données).
 
 ## Sommaire
 

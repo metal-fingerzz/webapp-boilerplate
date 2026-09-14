@@ -182,10 +182,18 @@ Côté frontend, `src/main.tsx` est exclu du rapport : ce point d'entrée ne fai
 
 À trancher dans cette pull request :
 
-- **Base réelle partagée ou conteneur jetable par exécution.** Cette question ne se pose plus à vide : il existe désormais un `compose.yaml` et un `poe db-reset` (voir [database.md](database.md)). Réutiliser ce service avec une base dédiée aux tests est l'option qui part gagnante, et testcontainers a maintenant à se justifier contre elle plutôt que contre rien.
 - **Isolation par rollback transactionnel à chaque test, ou recréation du schéma.**
 - **Constitution des données de départ : fixtures explicites ou fabriques.**
 
-Un point est en revanche déjà acquis : **ne pas substituer SQLite à PostgreSQL**. Le projet cible PostgreSQL via `asyncpg`, et les divergences de types, de contraintes et de DDL rendraient les tests non représentatifs de ce qui tourne en production — précisément là où un test de persistance a de la valeur.
+Deux points sont en revanche déjà acquis.
 
-> **Piège connu.** `backend/.env.test` déclare `postgresql+asyncpg://usr:pswd@localhost:5432/test` — le rôle `usr` que crée `compose.yaml`, mais une base `test` que rien ne crée : le compose ne crée que `dev`. Sans conséquence aujourd'hui puisque la suite n'ouvre aucune connexion (voir [§7](#7-configuration-des-tests)), et c'est précisément ce qui en fait un piège : le premier test qui se connectera échouera sur une base introuvable, pas sur son sujet. Il faudra alors décider qui crée cette base.
+**Ne pas substituer SQLite à PostgreSQL.** Le projet cible PostgreSQL via `asyncpg`, et les divergences de types, de contraintes et de DDL rendraient les tests non représentatifs de ce qui tourne en production — précisément là où un test de persistance a de la valeur.
+
+**La suite crée sa propre base, sur le serveur du compose.** Elle se connecte au serveur que démarre `poe db-up`, crée la base `test` que déclare déjà `backend/.env.test`, y applique les migrations, et la détruit en fin d'exécution. `compose.yaml` ne crée pas cette base, et c'est voulu :
+
+- **La CI ne passera pas par le compose.** Un conteneur de service GitHub Actions démarre avant le checkout du dépôt : il ne peut monter aucun script d'initialisation versionné. Une base créée par le compose existerait en local et manquerait en CI ; créée par la suite, elle existe partout où un serveur répond.
+- **Les scripts d'initialisation de l'image ne tournent que sur un volume vide.** Un script `docker-entrypoint-initdb.d` ajouté après coup ne s'exécuterait jamais chez qui a déjà un volume `db-data`, et rien ne le signalerait — le même genre d'échec silencieux que le chemin du volume (voir [database.md §5](database.md#5-le-chemin-du-volume)).
+
+Recréer la base à chaque exécution garantit qu'aucun reste d'une exécution précédente ne fausse un résultat, et rejoue les migrations au passage. Testcontainers est écarté du même coup : l'isolation qu'il apporterait, la base recréée l'apporte déjà, sans démarrer un conteneur par exécution. Le rôle `usr` a le droit de créer une base, puisque l'image fait du rôle `POSTGRES_USER` un superutilisateur.
+
+La fixture qui fait ce travail s'écrit dans la pull request du premier modèle, avec le reste de cette section. D'ici là, la suite n'ouvre aucune connexion (voir [§7](#7-configuration-des-tests)) et la base `test` n'existe nulle part.

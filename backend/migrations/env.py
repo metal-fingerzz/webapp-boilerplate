@@ -25,6 +25,19 @@ if config.config_file_name is not None:
 # target_metadata = mymodel.Base.metadata
 target_metadata = Base.metadata
 
+# Shared by both modes so a diff can never depend on which one produced it.
+#
+# compare_type catches a changed column type. compare_server_default catches a
+# changed default, which autogenerate ignores entirely without it -- with one blind
+# spot worth knowing. On PostgreSQL, Alembic compares the two rendered defaults as
+# text and, when they differ, asks the server to evaluate "old = new": two functions
+# returning the same value therefore pass as identical, and now() and
+# timezone('utc', now()) are indistinguishable this way. The same mechanism cuts the
+# other way -- a random-valued default whose stored text stopped matching what the
+# model renders would compare unequal on every run. Neither arises today: PostgreSQL
+# stores uuidv7() and now() verbatim, the texts match, and no evaluation takes place.
+COMPARISON_OPTIONS = {"compare_type": True, "compare_server_default": True}
+
 # other values from the config, defined by the needs of env.py,
 # can be acquired:
 # my_important_option = config.get_main_option("my_important_option")
@@ -47,9 +60,9 @@ def run_migrations_offline() -> None:
     context.configure(
         url=url,
         target_metadata=target_metadata,
-        compare_type=True,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        **COMPARISON_OPTIONS,
     )
 
     with context.begin_transaction():
@@ -58,7 +71,7 @@ def run_migrations_offline() -> None:
 
 def do_run_migrations(connection: Connection) -> None:
     context.configure(
-        connection=connection, target_metadata=target_metadata, compare_type=True
+        connection=connection, target_metadata=target_metadata, **COMPARISON_OPTIONS
     )
 
     with context.begin_transaction():

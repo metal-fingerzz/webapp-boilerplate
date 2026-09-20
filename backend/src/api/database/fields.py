@@ -15,6 +15,15 @@ def created_at() -> Mapped[datetime]:
     return mapped_column(server_default=func.now())
 
 
+# onupdate is SQLAlchemy-side, not a trigger: the compiler injects now() into the
+# SET clause of every UPDATE it builds, ORM and Core alike. A statement that does
+# not go through SQLAlchemy -- op.execute("UPDATE ...") in a data migration, a psql
+# session -- leaves this column at its previous value, silently. That is the first
+# path to check if a stale updated_at is ever the symptom.
+#
+# Handing the guarantee to the database means a trigger plus
+# server_onupdate=FetchedValue() here, so SQLAlchemy reads the computed value back;
+# the eager_defaults comment in tables/base.py explains why that read-back matters.
 def updated_at() -> Mapped[datetime]:
     return mapped_column(server_default=func.now(), onupdate=func.now())
 

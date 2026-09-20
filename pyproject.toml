@@ -130,7 +130,7 @@ help = "Destroy the development database and start an empty one"
 
 [tool.poe.tasks.revision]
 cwd = "backend"
-cmd = "alembic revision --autogenerate -m ${message}"
+cmd = "alembic revision --autogenerate -m \"${message}\""
 help = "Autogenerate a migration from the models, against the running database"
 
   [[tool.poe.tasks.revision.args]]

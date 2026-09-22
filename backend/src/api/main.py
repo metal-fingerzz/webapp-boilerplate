@@ -1,9 +1,15 @@
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.exceptions import HTTPException, RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.requests import Request
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from api.config import ENV, settings
 from api.error import (
@@ -12,6 +18,7 @@ from api.error import (
     unhandled_exception_json,
 )
 from api.routes import main_router
+from api.routes.auth import auth_router
 
 IS_DEV_ENV: bool = ENV == "development"
 
@@ -20,10 +27,27 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)s %(name)s - %(message)s",
 )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    database_engine: AsyncEngine = create_async_engine(
+        url=str(settings.DATABASE_URL), pool_pre_ping=True
+    )
+    app.state.database_engine = database_engine
+    app.state.database_session_factory = async_sessionmaker(
+        database_engine, expire_on_commit=False
+    )
+    try:
+        yield
+    finally:
+        await database_engine.dispose()
+
+
 api = FastAPI(
     openapi_url="/openapi.json" if IS_DEV_ENV else None,
     docs_url="/docs" if IS_DEV_ENV else None,
     redoc_url="/redoc" if IS_DEV_ENV else None,
+    lifespan=lifespan,
 )
 
 
@@ -54,3 +78,4 @@ api.add_middleware(
 )
 
 api.include_router(router=main_router)
+api.include_router(router=auth_router)

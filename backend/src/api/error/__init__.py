@@ -4,17 +4,17 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 
-class ApiFailure(BaseModel):
+class ApiError(BaseModel):
     key: str
     message: str
     field: str | None = None
 
 
-class ApiFailures(BaseModel):
-    failures: list[ApiFailure]
+class ApiFailure(BaseModel):
+    errors: list[ApiError]
 
 
-class HttpApiFailure(HTTPException):
+class HttpApiError(HTTPException):
     def __init__(
         self,
         status_code: int,
@@ -28,12 +28,12 @@ class HttpApiFailure(HTTPException):
         self.field: str | None = field
 
 
-ERROR_RESPONSE = {"model": ApiFailures}
+ERROR_RESPONSE = {"model": ApiFailure}
 
 
-def _build_json_response(status_code: int, failures: list[ApiFailure]) -> JSONResponse:
+def _build_json_response(status_code: int, errors: list[ApiError]) -> JSONResponse:
     return JSONResponse(
-        status_code=status_code, content=ApiFailures(failures=failures).model_dump()
+        status_code=status_code, content=ApiFailure(errors=errors).model_dump()
     )
 
 
@@ -42,8 +42,8 @@ def request_validation_error_json(
 ) -> JSONResponse:
     return _build_json_response(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-        failures=[
-            ApiFailure(
+        errors=[
+            ApiError(
                 key=error["type"],
                 message=error["msg"],
                 field=".".join(
@@ -61,8 +61,8 @@ def request_validation_error_json(
 def http_exception_json(exception: HTTPException) -> JSONResponse:
     return _build_json_response(
         status_code=exception.status_code,
-        failures=[
-            ApiFailure(
+        errors=[
+            ApiError(
                 key=getattr(exception, "key", f"http_{exception.status_code}"),
                 message=exception.detail,
                 field=getattr(exception, "field", None),
@@ -74,5 +74,5 @@ def http_exception_json(exception: HTTPException) -> JSONResponse:
 def unhandled_exception_json() -> JSONResponse:
     return _build_json_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        failures=[ApiFailure(key="internal_error", message="Internal server error")],
+        errors=[ApiError(key="internal_error", message="Internal server error")],
     )

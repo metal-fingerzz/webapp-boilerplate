@@ -13,6 +13,10 @@ if TYPE_CHECKING:
     from api.database.tables.users.model import User
 
 
+DEFAULT_ROLE_NAME: str = "user"
+ADMINISTRATOR_ROLE_NAME: str = "admin"
+
+
 class Role(Base):
     __tablename__ = "roles"
 

@@ -144,6 +144,18 @@ cwd = "backend"
 cmd = "alembic upgrade head"
 help = "Apply every pending migration to the database"
 
+[tool.poe.tasks.rollback]
+cwd = "backend"
+cmd = "alembic downgrade -1"
+help = "Revert the last migration applied to the database"
+
+# --- Maintenance ---
+
+[tool.poe.tasks.fetch-password-blacklist]
+cwd = "backend"
+cmd = "python -m scripts.fetch_password_blacklist"
+help = "Fetch the common-password blocklist from SecLists (network access)"
+
 # --- Release configuration ---
 
 # docs/git-workflow.md §8. The released version lives in the git tag and nowhere

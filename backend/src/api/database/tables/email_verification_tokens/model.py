@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy import Index
 from sqlalchemy.orm import Mapped, mapped_column
@@ -7,6 +7,8 @@ from sqlalchemy.orm import Mapped, mapped_column
 from api.database.fields import created_at, foreign_key, parent, primary_key, updated_at
 from api.database.tables.base import Base
 from api.database.tables.users.model import User
+
+VERIFICATION_TOKEN_TTL: timedelta = timedelta(hours=24)
 
 
 class EmailVerificationToken(Base):

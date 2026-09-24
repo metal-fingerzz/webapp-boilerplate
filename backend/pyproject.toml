@@ -14,7 +14,7 @@ dependencies = [
     "asyncpg>=0.31.0,<0.32.0",
     "fastapi[standard]>=0.141.1,<0.142.0",
     "pydantic-settings>=2.15.0,<3.0.0",
-    "sqlalchemy[asyncio]>=2.0.52,<3.0.0",
+    "sqlalchemy[asyncio]>=2.0.54,<3.0.0",
 ]
 
 [dependency-groups]

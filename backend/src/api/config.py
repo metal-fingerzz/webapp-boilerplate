@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from typing import Literal
 
-from pydantic import PostgresDsn
+from pydantic import PostgresDsn, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV: str = os.getenv("ENV", "production")
@@ -19,6 +19,13 @@ class Settings(BaseSettings):
     DATABASE_URL: PostgresDsn
     FRONTEND_URL: str
     LOG_LEVEL: Literal["debug", "info", "warn", "warning", "error", "critical", "fatal"]
+    MAIL_FROM: str
+    MAIL_FROM_NAME: str
+    SMTP_HOST: str
+    SMTP_PORT: int
+    SMTP_USERNAME: str | None
+    SMTP_PASSWORD: SecretStr | None
+    SMTP_TLS: Literal["starttls", "ssl", "none"]
 
     @property
     def logging_level(self) -> int:

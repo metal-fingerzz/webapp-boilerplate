@@ -8,7 +8,7 @@ from api.database.fields import created_at, foreign_key, parent, primary_key, up
 from api.database.tables.base import Base
 from api.database.tables.users.model import User
 
-VERIFICATION_TOKEN_TTL: timedelta = timedelta(hours=24)
+EMAIL_VERIFICATION_TOKEN_TTL: timedelta = timedelta(hours=24)
 
 
 class EmailVerificationToken(Base):
@@ -34,10 +34,7 @@ class EmailVerificationToken(Base):
 # are not redundant: a partial index only serves queries that repeat its predicate,
 # so reading a user's whole token history, and the ON DELETE CASCADE, still go
 # through the plain one.
-#
-# Declared here, and written over the columns rather than as raw SQL, for the reason
-# given in users/model.py: SQLAlchemy then knows the index depends on them.
-Index(
+active_user_unique_index = Index(
     "email_verification_tokens_active_user_idx",
     EmailVerificationToken.user_id,
     unique=True,

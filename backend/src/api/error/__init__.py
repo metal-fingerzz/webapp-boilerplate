@@ -74,5 +74,5 @@ def http_exception_json(exception: HTTPException) -> JSONResponse:
 def unhandled_exception_json() -> JSONResponse:
     return _build_json_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        errors=[ApiError(key="internal_error", message="Internal server error")],
+        errors=[ApiError(key="internal_error", message="Something went wrong")],
     )

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=BACKEND_PATH / f".env.{ENV}",
         env_file_encoding="utf-8",
+        env_parse_none_str="",
     )
 
     DATABASE_URL: PostgresDsn

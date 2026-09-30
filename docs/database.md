@@ -19,15 +19,18 @@ Sur un clone neuf, l'ordre est le suivant :
 ```bash
 uv sync              # dépendances Python
 poe db-up            # démarre PostgreSQL
+poe mail-up          # démarre Mailpit, voir email.md
 poe migrate          # applique les migrations
 poe backend-dev      # lance l'API
 ```
 
 | Tâche | Commande | Effet |
 |---|---|---|
-| `poe db-up` | `docker compose up --detach --wait` | Démarre le conteneur et **ne rend la main qu'au healthcheck vert** |
-| `poe db-down` | `docker compose down` | Arrête et supprime le conteneur, conserve les données |
-| `poe db-reset` | `docker compose down --volumes` puis `up` | Détruit le volume et repart d'une base vide |
+| `poe db-up` | `docker compose up --detach --wait db` | Démarre le conteneur et **ne rend la main qu'au healthcheck vert** |
+| `poe db-down` | `docker compose down db` | Arrête et supprime le conteneur, conserve les données |
+| `poe db-reset` | `docker compose down --volumes db` puis `up` | Détruit le volume et repart d'une base vide |
+
+**Chaque tâche nomme le service `db`.** `compose.yaml` fait aussi tourner Mailpit (voir [email.md](email.md)), et un `docker compose down` sans nom de service arrêterait les deux. Le nom limite aussi `--volumes` au volume de la base : `poe db-reset` recrée `db-data` sans toucher au conteneur Mailpit.
 
 `--wait` n'est pas un détail de confort : sans lui, `docker compose up --detach` rend la main dès que le conteneur démarre, alors que PostgreSQL n'accepte pas encore de connexion. Un `poe migrate` enchaîné derrière échoue alors sur une connexion refusée, une fois sur deux, et l'erreur pointe vers Alembic plutôt que vers l'attente manquante. Le `healthcheck` de `compose.yaml` (`pg_isready`) est ce que `--wait` observe.
 

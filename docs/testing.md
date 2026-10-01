@@ -87,7 +87,7 @@ async def test_health_check_returns_ok(client: AsyncClient) -> None:
 
 `ASGITransport` court-circuite la couche réseau : les requêtes sont passées directement à l'application, sans port ouvert ni serveur lancé.
 
-**Pourquoi pas `fastapi.testclient.TestClient`** — il est synchrone et gère son propre event loop en interne. Il entrerait en conflit avec les fixtures asynchrones, à commencer par la future session de base de données, et forcerait à mélanger tests synchrones et asynchrones dans la même suite.
+**Pourquoi pas `fastapi.testclient.TestClient`** — il est synchrone et gère son propre event loop en interne. Il entrerait en conflit avec les fixtures asynchrones, à commencer par la session de base de données du [§9](#9-tests-base-de-données), et forcerait à mélanger tests synchrones et asynchrones dans la même suite.
 
 ## 5. Tester les composants React (frontend)
 
@@ -139,7 +139,7 @@ Trois pièges valent d'être signalés.
 
 Les deux piles versionnent un fichier d'environnement de test ne contenant que des valeurs factices.
 
-**Backend** — `backend/.env.test` : la suite n'ouvre aucune connexion, ces valeurs existent uniquement pour que `Settings` passe la validation. La variable `ENV` est forcée à `test` en tête de `tests/conftest.py`, **avant tout import de `api`** :
+**Backend** — `backend/.env.test` : `DATABASE_URL` nomme la base que la suite crée sur le serveur du compose (voir [§9](#9-tests-base-de-données)). Les autres valeurs existent seulement pour que `Settings` passe la validation, et aucun mail ne sort de la suite. La variable `ENV` est forcée à `test` en tête de `tests/conftest.py`, **avant tout import de `api`** :
 
 ```python
 import os
@@ -178,22 +178,58 @@ Côté frontend, `src/main.tsx` est exclu du rapport : ce point d'entrée ne fai
 
 ## 9. Tests base de données
 
-**À définir — et c'est ici que la décision s'écrira**, pas dans une issue tenue en parallèle. Ce qui manquait à cette section n'était pas un endroit pour vivre, mais le moment où elle devient décidable : **la première pull request qui introduira un engine, un sessionmaker et un premier modèle.** Tant qu'`api/database/` ne contient que la classe `Base`, concevoir des fixtures contre une couche de persistance qui n'existe pas reviendrait à figer des suppositions qu'il faudrait réécrire à la première migration.
+Ce qui passe par la base se teste contre PostgreSQL, sur une base créée pour l'exécution. Chaque test écrit dans une transaction que sa fin annule, et les données de départ s'écrivent avec des fonctions ordinaires. Les fixtures sont dans `tests/conftest.py`, et `tests/routes/auth/test_register.py` est le premier fichier qui s'en sert.
 
-À trancher dans cette pull request :
+```python
+async def test_register_with_a_taken_username_returns_409_whatever_its_case(
+    client: AsyncClient,
+    database_session: AsyncSession,
+) -> None:
+    await add_existing_user(database_session, email="ada@example.com", username="Ada")
 
-- **Isolation par rollback transactionnel à chaque test, ou recréation du schéma.**
-- **Constitution des données de départ : fixtures explicites ou fabriques.**
+    response = await client.post(
+        "/register", json=new_user_data(email="grace@example.com", username="ada")
+    )
 
-Deux points sont en revanche déjà acquis.
+    assert response.status_code == 409
+    assert await count_users(database_session) == 1
+```
 
-**Ne pas substituer SQLite à PostgreSQL.** Le projet cible PostgreSQL via `asyncpg`, et les divergences de types, de contraintes et de DDL rendraient les tests non représentatifs de ce qui tourne en production — précisément là où un test de persistance a de la valeur.
+**Un test qui touche la base doit avoir un serveur qui répond** : `poe db-up` avant `poe backend-test`. Les tests qui ne demandent aucune fixture de base, comme `test_config.py`, passent sans serveur.
 
-**La suite crée sa propre base, sur le serveur du compose.** Elle se connecte au serveur que démarre `poe db-up`, crée la base `test` que déclare déjà `backend/.env.test`, y applique les migrations, et la détruit en fin d'exécution. `compose.yaml` ne crée pas cette base, et c'est voulu :
+### Une base par exécution, sur le serveur du compose
 
-- **La CI ne passera pas par le compose.** Un conteneur de service GitHub Actions démarre avant le checkout du dépôt : il ne peut monter aucun script d'initialisation versionné. Une base créée par le compose existerait en local et manquerait en CI ; créée par la suite, elle existe partout où un serveur répond.
-- **Les scripts d'initialisation de l'image ne tournent que sur un volume vide.** Un script `docker-entrypoint-initdb.d` ajouté après coup ne s'exécuterait jamais chez qui a déjà un volume `db-data`, et rien ne le signalerait — le même genre d'échec silencieux que le chemin du volume (voir [database.md §5](database.md#5-le-chemin-du-volume)).
+La fixture de session `database` supprime une éventuelle base `test` laissée par une exécution interrompue, la recrée, applique les migrations, puis la supprime en fin d'exécution. La base s'appelle `test` parce que c'est le nom que déclare `backend/.env.test`.
 
-Recréer la base à chaque exécution garantit qu'aucun reste d'une exécution précédente ne fausse un résultat, et rejoue les migrations au passage. Testcontainers est écarté du même coup : l'isolation qu'il apporterait, la base recréée l'apporte déjà, sans démarrer un conteneur par exécution. Le rôle `usr` a le droit de créer une base, puisque l'image fait du rôle `POSTGRES_USER` un superutilisateur.
+- **Le schéma vient des migrations, pas de `metadata.create_all`.** Les migrations créent aussi les rôles de départ, et la route d'inscription en a besoin. Construire le schéma à partir des modèles laisserait en plus passer une migration qui ne correspond plus aux modèles.
+- **Alembic est lancé sans `alembic.ini`.** Si `env.py` reçoit ce fichier, il en passe la section logging à `fileConfig`, qui désactive tous les loggers déjà créés, y compris ceux de l'application. Un test qui lirait leurs messages ne verrait plus rien.
+- **Ne pas substituer SQLite à PostgreSQL.** Le projet cible PostgreSQL via `asyncpg`, et les différences de types, de contraintes et de DDL rendraient les tests non représentatifs de la production. C'est précisément là qu'un test de persistance a de la valeur.
 
-La fixture qui fait ce travail s'écrit dans la pull request du premier modèle, avec le reste de cette section. D'ici là, la suite n'ouvre aucune connexion (voir [§7](#7-configuration-des-tests)) et la base `test` n'existe nulle part.
+`compose.yaml` ne crée pas cette base, et c'est voulu :
+
+- **La CI ne passe pas par le compose.** Le job `backend` démarre un conteneur de service `postgres:18` avec les mêmes identifiants. Ce conteneur démarre avant le checkout du dépôt : il ne peut exécuter aucun script d'initialisation versionné. Une base créée par le compose existerait en local et manquerait en CI. Créée par la suite, elle existe partout où un serveur répond.
+- **Les scripts d'initialisation de l'image ne tournent que sur un volume vide.** Un script `docker-entrypoint-initdb.d` ajouté après coup ne s'exécuterait jamais chez qui a déjà un volume `db-data`, et rien ne le signalerait. C'est le même genre d'échec silencieux que le chemin du volume (voir [database.md §5](database.md#5-le-chemin-du-volume)).
+
+Testcontainers est écarté : la base recréée apporte déjà l'isolation qu'il donnerait, sans démarrer un conteneur par exécution. Le rôle `usr` a le droit de créer une base, puisque l'image fait du rôle `POSTGRES_USER` un superutilisateur.
+
+### Isolation : une transaction annulée par test
+
+La fixture `database_connection` ouvre une connexion et y démarre une transaction, que la fin du test annule. Tout ce que le test et ses requêtes ont écrit disparaît avec elle. L'autre option, recréer le schéma à chaque test, a été écartée : il faudrait rejouer toutes les migrations à chaque fois, et le coût grandirait avec chaque migration ajoutée.
+
+**Les routes committent, et c'est ce qui impose le mode savepoint.** Chaque session est ouverte avec `join_transaction_mode="create_savepoint"`. Le `commit()` d'une route ne valide alors qu'un savepoint, et la transaction du test reste ouverte. Le mode compte aussi pour les erreurs : dans PostgreSQL, une requête en erreur, comme l'`INSERT` qui viole une contrainte d'unicité, rend toute la transaction inutilisable. Le savepoint limite les dégâts à la requête HTTP, et la session du test peut encore lire la base. Sans lui, les tests de doublon de `test_register.py` échouent.
+
+**Chaque requête reçoit sa propre session**, ouverte sur cette connexion, comme elle en recevrait une du pool. `get_database_session` est remplacée par `dependency_overrides` pendant le test. Il n'y a pas d'autre moyen : `ASGITransport` ne lance pas le `lifespan`, et la fabrique de sessions de `app.state` n'existe donc pas en test. **Le test lit avec sa propre session**, `database_session`. Il relit ainsi la base, et pas ce que la requête a laissé en mémoire.
+
+**L'engine est créé et fermé par test**, sans pool. Une connexion `asyncpg` est liée à la boucle asyncio qui l'a ouverte, et chaque test a la sienne (voir [§3](#3-tests-asynchrones-backend)).
+
+**Règle qui en découle : un test n'ouvre jamais sa propre connexion** en dehors de ces fixtures. Ce qu'elle écrirait ne serait pas annulé et passerait au test suivant.
+
+### Données de départ : des fonctions, pas de fabriques
+
+Les données de départ s'écrivent avec des fonctions ordinaires, dans le fichier de test qui s'en sert, par exemple `add_existing_user(session, email=…, username=…)`. Elles passent par les contrôleurs de l'application, avec un `commit()` comme une route. Ce qu'un test prépare se lit donc dans le test lui-même.
+
+Une bibliothèque de fabriques comme `factory_boy` a été écartée. Elle gère mal les sessions asynchrones, et avec trois tables elle coûterait plus qu'elle ne rapporte. Une fonction qui sert à plusieurs fichiers remontera dans `conftest.py` au deuxième usage, pas avant.
+
+### Les mails
+
+La fixture `sent_emails` s'applique à tous les tests. Elle remplace `api.email.send_email` par un enregistreur et renvoie la liste des mails qu'il a reçus. Sans elle, faute de serveur SMTP, chaque inscription attendrait toutes les tentatives de renvoi, soit 30 secondes. Le remplacement vise `send_email` plutôt que la fonction appelée par chaque route : tout envoi passe par elle, quel que soit le nom sous lequel une route l'a importée.

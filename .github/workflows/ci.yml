@@ -26,6 +26,22 @@ jobs:
   backend:
     name: Backend
     runs-on: ubuntu-latest
+    # The server the test suite creates its own database on (docs/testing.md §9),
+    # with the image and credentials of compose.yaml. A service container starts
+    # before the checkout, so it cannot come from compose.yaml itself.
+    services:
+      db:
+        image: postgres:18
+        env:
+          POSTGRES_USER: usr
+          POSTGRES_PASSWORD: pswd
+        ports:
+          - "5432:5432"
+        options: >-
+          --health-cmd "pg_isready -U usr"
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 15
     steps:
       - uses: actions/checkout@v7
 

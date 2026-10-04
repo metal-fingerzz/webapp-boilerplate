@@ -1,5 +1,7 @@
-# The development database. `poe db-up` starts it, `poe db-down` stops it and
-# `poe db-reset` empties it; see docs/database.md.
+# The development database and mail catcher. `poe db-up` starts the database,
+# `poe db-down` stops it and `poe db-reset` empties it; see docs/database.md.
+# `poe mail-up` and `poe mail-down` do the same for Mailpit; see docs/email.md.
+# Every task names its service: a bare `docker compose down` would stop both.
 #
 # The credentials are written here rather than read from
 # backend/.env.development, which declares a single DATABASE_URL where this file
@@ -37,6 +39,17 @@ services:
       interval: 2s
       timeout: 2s
       retries: 15
+
+  mailpit:
+    # Catches every mail the API sends and shows it at http://localhost:8025.
+    # Nothing leaves the machine. The ports are Mailpit's defaults, which
+    # backend/.env.development and .env.test already point at. No volume: the
+    # caught mails are disposable, and `poe mail-down` drops them. The image
+    # ships its own healthcheck, which `--wait` observes.
+    image: axllent/mailpit:v1
+    ports:
+      - "1025:1025"
+      - "8025:8025"
 
 volumes:
   db-data:

@@ -108,23 +108,36 @@ help = "Rehearse the release without tagging or publishing anything"
 
 # docs/database.md. `docker compose` goes through poe like every other entry
 # point of the monorepo, so that what a contributor types is the same on both
-# stacks — and so that `--wait` is never left out by hand.
+# stacks — and so that `--wait` is never left out by hand. Every task names its
+# service: compose.yaml also runs Mailpit, and a bare `down` would stop both.
 
 [tool.poe.tasks.db-up]
-cmd = "docker compose up --detach --wait"
+cmd = "docker compose up --detach --wait db"
 help = "Start the development database and wait until it accepts connections"
 
 [tool.poe.tasks.db-down]
-cmd = "docker compose down"
+cmd = "docker compose down db"
 help = "Stop the development database, keeping its data"
 
 [tool.poe.tasks.db-reset]
 sequence = [
-  { cmd = "docker compose down --volumes" },
-  { cmd = "docker compose up --detach --wait" },
+  { cmd = "docker compose down --volumes db" },
+  { cmd = "docker compose up --detach --wait db" },
 ]
 ignore_fail = false
 help = "Destroy the development database and start an empty one"
+
+# --- Mail ---
+
+# docs/email.md. Mailpit catches what the API sends; nothing leaves the machine.
+
+[tool.poe.tasks.mail-up]
+cmd = "docker compose up --detach --wait mailpit"
+help = "Start Mailpit and wait until it accepts mail, inbox at http://localhost:8025"
+
+[tool.poe.tasks.mail-down]
+cmd = "docker compose down mailpit"
+help = "Stop Mailpit, dropping the mails it caught"
 
 # --- Migrations ---
 

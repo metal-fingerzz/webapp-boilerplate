@@ -16,7 +16,7 @@ services:
     # does. The major is pinned, the patch is not — `docker compose pull` picks
     # up 18.x fixes, and Dependabot proposes the next major (see
     # .github/dependabot.yml).
-    image: postgres:18
+    image: postgres:19
     environment:
       POSTGRES_USER: usr
       POSTGRES_PASSWORD: pswd
